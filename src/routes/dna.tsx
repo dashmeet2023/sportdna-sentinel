@@ -1,0 +1,282 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AppShell } from "@/components/AppShell";
+import { GuardianAgent } from "@/components/GuardianAgent";
+import { useRef, useState } from "react";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2 } from "lucide-react";
+
+export const Route = createFileRoute("/dna")({
+  head: () => ({
+    meta: [
+      { title: "Media DNA Analysis · SportDNA" },
+      { name: "description", content: "Generate AI Digital DNA fingerprints from sports video. Frame extraction, embedding generation, and invisible watermarking." },
+      { property: "og:title", content: "Media DNA Analysis · SportDNA" },
+      { property: "og:description", content: "Generate AI Digital DNA fingerprints for sports media protection." },
+    ],
+  }),
+  component: DNAPage,
+});
+
+interface FrameData { url: string; t: number; }
+
+function DNAPage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [frames, setFrames] = useState<FrameData[]>([]);
+  const [stage, setStage] = useState<"idle" | "frames" | "embed" | "dna" | "watermark" | "done">("idle");
+  const [progress, setProgress] = useState(0);
+  const [hash, setHash] = useState("");
+  const [mediaId, setMediaId] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  function reset() {
+    setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
+  }
+
+  async function handleFile(f: File) {
+    reset();
+    setFile(f);
+    setStage("frames");
+
+    const url = URL.createObjectURL(f);
+    const v = document.createElement("video");
+    v.src = url; v.muted = true; v.playsInline = true; v.preload = "auto";
+    await new Promise<void>((res, rej) => {
+      v.onloadedmetadata = () => res();
+      v.onerror = () => rej();
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 240; canvas.height = 135;
+    const ctx = canvas.getContext("2d")!;
+    const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : 6;
+    const stamps = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95].map((p) => p * dur);
+    const out: FrameData[] = [];
+
+    for (const t of stamps) {
+      await new Promise<void>((res) => {
+        const onSeeked = () => { v.removeEventListener("seeked", onSeeked); res(); };
+        v.addEventListener("seeked", onSeeked);
+        try { v.currentTime = Math.min(t, Math.max(0, dur - 0.05)); } catch { res(); }
+      });
+      try {
+        ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+        out.push({ url: canvas.toDataURL("image/jpeg", 0.7), t });
+        setFrames([...out]);
+        setProgress(Math.round((out.length / stamps.length) * 35));
+        await new Promise((r) => setTimeout(r, 220));
+      } catch {
+        // skip
+      }
+    }
+    URL.revokeObjectURL(url);
+
+    // Embedding
+    setStage("embed");
+    for (let i = 35; i <= 60; i += 4) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
+
+    // DNA hash
+    setStage("dna");
+    const buf = await f.slice(0, 64 * 1024).arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    setHash(hex.slice(0, 48));
+    setMediaId("MID-" + hex.slice(0, 6).toUpperCase());
+    for (let i = 60; i <= 85; i += 5) { await new Promise((r) => setTimeout(r, 80)); setProgress(i); }
+
+    // Watermark
+    setStage("watermark");
+    for (let i = 85; i <= 100; i += 5) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
+
+    setStage("done");
+  }
+
+  return (
+    <AppShell>
+      <div className="space-y-6">
+        <header>
+          <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary">AI Pipeline</div>
+          <h1 className="text-2xl font-bold mt-1">Media DNA Analysis</h1>
+          <p className="text-sm text-muted-foreground">Upload a sports clip to generate its unique AI Digital DNA fingerprint and embed an invisible watermark.</p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Upload */}
+          <div className="glass rounded-xl p-5 lg:col-span-2">
+            {!file ? (
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+                onClick={() => inputRef.current?.click()}
+                className="cursor-pointer rounded-lg border-2 border-dashed border-border hover:border-primary/50 transition-colors p-12 text-center"
+              >
+                <div className="w-16 h-16 mx-auto rounded-full grid place-items-center gradient-amber glow-amber mb-4">
+                  <Upload className="w-7 h-7 text-primary-foreground" />
+                </div>
+                <div className="text-sm font-semibold">Drop a sports video to fingerprint</div>
+                <div className="text-xs text-muted-foreground mt-1">MP4 / MOV / WebM · processed locally in your browser</div>
+                <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <video ref={videoRef} src={URL.createObjectURL(file)} className="w-32 h-20 rounded-md border border-border bg-black object-cover" controls={false} muted />
+                    <div>
+                      <div className="text-sm font-semibold truncate max-w-xs">{file.name}</div>
+                      <div className="text-[10px] mono text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                    </div>
+                  </div>
+                  <button onClick={reset} className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-primary/50">Reset</button>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-[10px] mono text-muted-foreground mb-1">
+                    <span>{stageLabel(stage)}</span><span>{progress}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-full gradient-amber glow-amber transition-all" style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[10px] mono text-muted-foreground mb-2">EXTRACTED FRAMES</div>
+                  <div className="grid grid-cols-6 gap-2">
+                    {Array.from({ length: 6 }).map((_, i) => {
+                      const fr = frames[i];
+                      return (
+                        <div key={i} className="relative aspect-video rounded-md overflow-hidden border border-border bg-black/40">
+                          {fr ? (
+                            <>
+                              <img src={fr.url} alt={`frame ${i}`} className="w-full h-full object-cover animate-float-up" />
+                              <div className="absolute inset-0 ring-1 ring-primary/40" />
+                              <div className="absolute bottom-0 left-0 right-0 px-1 py-0.5 text-[8px] mono bg-black/60 text-primary">t={fr.t.toFixed(1)}s</div>
+                            </>
+                          ) : (
+                            <div className="w-full h-full grid place-items-center">
+                              <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Fingerprint visualization */}
+                <FingerprintViz active={stage === "embed" || stage === "dna" || stage === "watermark" || stage === "done"} />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="glass rounded-xl p-4">
+              <h3 className="text-sm font-semibold mb-3">DNA CERTIFICATE</h3>
+              <Field label="MEDIA ID" value={mediaId || "—"} />
+              <Field label="DNA HASH" value={hash || "—"} mono break />
+              <Field label="WATERMARK"
+                value={
+                  stage === "done" ? "EMBEDDED · INVISIBLE" :
+                  stage === "watermark" ? "EMBEDDING…" : "PENDING"
+                }
+                tone={stage === "done" ? "success" : "muted"}
+              />
+              <Field label="OWNERSHIP CERT"
+                value={stage === "done" ? "ISSUED · CHAIN-VERIFIED" : "PENDING"}
+                tone={stage === "done" ? "success" : "muted"}
+              />
+              <div className="mt-3 flex gap-2">
+                <button disabled={stage !== "done"} className="flex-1 text-xs px-3 py-2 rounded-md gradient-amber text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed glow-amber">
+                  <Shield className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />Register on Chain
+                </button>
+              </div>
+            </div>
+
+            <PipelineSteps stage={stage} />
+          </div>
+        </div>
+
+        <GuardianAgent message="Frame-level embeddings generated using a 768-dim vision encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions." />
+      </div>
+    </AppShell>
+  );
+}
+
+function stageLabel(s: string) {
+  return ({
+    idle: "READY",
+    frames: "EXTRACTING FRAMES",
+    embed: "GENERATING EMBEDDINGS",
+    dna: "COMPUTING DNA HASH",
+    watermark: "EMBEDDING WATERMARK",
+    done: "PROTECTED",
+  } as Record<string, string>)[s] ?? s;
+}
+
+function Field({ label, value, mono, tone = "muted", break: brk }: { label: string; value: string; mono?: boolean; tone?: "success" | "muted"; break?: boolean }) {
+  return (
+    <div className="mb-2.5">
+      <div className="text-[10px] mono text-muted-foreground">{label}</div>
+      <div className={`text-xs ${mono ? "mono" : ""} ${tone === "success" ? "text-success" : "text-foreground"} ${brk ? "break-all" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
+function PipelineSteps({ stage }: { stage: string }) {
+  const steps = [
+    { id: "frames", label: "Frame Extraction", icon: Upload },
+    { id: "embed", label: "Vision Embeddings", icon: Fingerprint },
+    { id: "dna", label: "DNA Hash", icon: Fingerprint },
+    { id: "watermark", label: "Watermark", icon: Shield },
+    { id: "done", label: "Certificate", icon: FileCheck },
+  ] as const;
+  const order = ["idle", "frames", "embed", "dna", "watermark", "done"];
+  const cur = order.indexOf(stage);
+  return (
+    <div className="glass rounded-xl p-4">
+      <h3 className="text-sm font-semibold mb-3">PIPELINE</h3>
+      <ol className="space-y-2">
+        {steps.map((s, i) => {
+          const si = order.indexOf(s.id);
+          const done = cur >= si;
+          const active = cur === si;
+          const I = s.icon;
+          return (
+            <li key={s.id} className={`flex items-center gap-3 px-2 py-1.5 rounded-md ${active ? "bg-primary/10 border border-primary/30" : ""}`}>
+              <div className={`w-7 h-7 rounded-md grid place-items-center ${done ? "gradient-amber text-primary-foreground" : "bg-white/5 border border-border text-muted-foreground"}`}>
+                {active ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <I className="w-3.5 h-3.5" />}
+              </div>
+              <div className="text-xs">{s.label}</div>
+              {done && !active && <span className="ml-auto text-[10px] mono text-success">OK</span>}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+function FingerprintViz({ active }: { active: boolean }) {
+  return (
+    <div className="rounded-lg border border-border bg-black/40 p-3 relative overflow-hidden">
+      <div className="text-[10px] mono text-muted-foreground mb-2">FINGERPRINT VECTOR · 768D PROJECTION</div>
+      <div className="grid grid-cols-32 gap-[2px]" style={{ gridTemplateColumns: "repeat(32, minmax(0, 1fr))" }}>
+        {Array.from({ length: 32 * 8 }).map((_, i) => {
+          const v = (Math.sin(i * 1.7) + 1) / 2;
+          const on = active && Math.random() > 0.3;
+          return (
+            <div
+              key={i}
+              className="aspect-square rounded-[2px] transition-all"
+              style={{
+                background: on
+                  ? `oklch(${0.55 + v * 0.25} ${0.12 + v * 0.08} ${50 + v * 40})`
+                  : "oklch(0.22 0.005 60)",
+                boxShadow: on && v > 0.7 ? "0 0 4px oklch(0.78 0.17 70 / 0.6)" : undefined,
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}

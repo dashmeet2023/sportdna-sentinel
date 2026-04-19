@@ -1,26 +1,106 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AppShell } from "@/components/AppShell";
+import { StatCard } from "@/components/StatCard";
+import { ActivityFeed } from "@/components/ActivityFeed";
+import { GuardianAgent } from "@/components/GuardianAgent";
+import { RiskPredictionPanel } from "@/components/RiskPredictionPanel";
+import { RevenueEstimator } from "@/components/RevenueEstimator";
+import { Database, AlertOctagon, Globe2, Banknote } from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
+import { HOURLY_DETECTIONS, PLATFORM_BREAKDOWN } from "@/lib/mockData";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "SportDNA — Self-Tracing Sports Media Protection" },
+      { name: "description", content: "AI-powered anti-piracy intelligence platform for sports leagues and broadcasters. Detect, track, and prevent unauthorized media use in real time." },
+      { property: "og:title", content: "SportDNA — Self-Tracing Sports Media Protection" },
+      { property: "og:description", content: "AI-powered anti-piracy intelligence platform for sports leagues and broadcasters." },
+    ],
+  }),
+  component: Dashboard,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+const PIE_COLORS = ["oklch(0.78 0.17 70)", "oklch(0.65 0.22 25)", "oklch(0.72 0.17 155)", "oklch(0.70 0.15 250)", "oklch(0.82 0.17 85)", "oklch(0.55 0.05 60)"];
 
-function Index() {
-  return <PlaceholderIndex />;
+function Dashboard() {
+  return (
+    <AppShell>
+      <div className="space-y-6">
+        <header className="flex items-end justify-between flex-wrap gap-4">
+          <div>
+            <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary">Intelligence Dashboard</div>
+            <h1 className="text-2xl font-bold mt-1">Operations Overview</h1>
+            <p className="text-sm text-muted-foreground">Real-time monitoring of sports media propagation and unauthorized usage.</p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] mono">
+            <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
+            <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
+            <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+          </div>
+        </header>
+
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Media Assets Protected" value={12847} icon={Database} tone="amber" delta="+184 in last 24h" />
+          <StatCard label="Unauthorized Uploads" value={3421} icon={AlertOctagon} tone="red" delta="+217 today" />
+          <StatCard label="Platforms Monitored" value={847} icon={Globe2} tone="blue" delta="across 64 countries" />
+          <StatCard label="Revenue Loss Prevented" value={2847500} prefix="$" icon={Banknote} tone="green" delta="this quarter" />
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 glass rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-semibold">DETECTION VOLUME · 24H</h3>
+                <p className="text-[10px] mono text-muted-foreground">DETECTIONS vs TAKEDOWNS</p>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={HOURLY_DETECTIONS}>
+                <defs>
+                  <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.78 0.17 70)" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="oklch(0.78 0.17 70)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="g2" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.72 0.17 155)" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="oklch(0.72 0.17 155)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <XAxis dataKey="hour" stroke="oklch(0.68 0.02 80)" fontSize={10} interval={2} />
+                <YAxis stroke="oklch(0.68 0.02 80)" fontSize={10} />
+                <Tooltip contentStyle={{ background: "oklch(0.18 0.008 60)", border: "1px solid oklch(1 0 0 / 0.1)", fontSize: 12 }} />
+                <Area type="monotone" dataKey="detections" stroke="oklch(0.78 0.17 70)" fill="url(#g1)" strokeWidth={2} />
+                <Area type="monotone" dataKey="takedowns" stroke="oklch(0.72 0.17 155)" fill="url(#g2)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="glass rounded-xl p-4">
+            <h3 className="text-sm font-semibold mb-2">PIRACY BY PLATFORM</h3>
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie data={PLATFORM_BREAKDOWN} dataKey="value" nameKey="platform" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                  {PLATFORM_BREAKDOWN.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="oklch(0.16 0.005 60)" />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: "oklch(0.18 0.008 60)", border: "1px solid oklch(1 0 0 / 0.1)", fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2"><ActivityFeed /></div>
+          <div className="space-y-4">
+            <RiskPredictionPanel />
+            <RevenueEstimator />
+          </div>
+        </section>
+
+        <section><GuardianAgent /></section>
+      </div>
+    </AppShell>
+  );
 }
