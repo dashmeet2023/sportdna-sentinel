@@ -11,6 +11,10 @@ import { HOURLY_DETECTIONS, PLATFORM_BREAKDOWN } from "@/lib/mockData";
 import heroTrophy from "@/assets/hero-trophy.png";
 import heroPlayer from "@/assets/hero-player.png";
 import heroFans from "@/assets/hero-fans.png";
+import heroMatch from "@/assets/hero-match.png";
+import heroWorldcup from "@/assets/hero-worldcup.png";
+import heroStars from "@/assets/hero-stars.png";
+import heroCrowd from "@/assets/hero-crowd.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,23 +41,31 @@ function Dashboard() {
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
-          <div className="relative p-6 md:p-8 flex items-end justify-between flex-wrap gap-4 min-h-[220px]">
-            <div className="max-w-xl">
+          <div className="relative p-6 md:p-8 flex items-stretch justify-between flex-wrap gap-6 min-h-[260px]">
+            <div className="max-w-xl flex flex-col justify-end">
               <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary text-glow-amber">Intelligence Dashboard</div>
               <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight">
                 Protecting the world's <span className="text-primary text-glow-amber">most-watched</span> moments.
               </h1>
               <p className="text-sm text-muted-foreground mt-2">Real-time monitoring of sports media propagation and unauthorized usage across 847 platforms.</p>
+              <div className="flex flex-wrap items-center gap-2 mt-4 text-[10px] mono">
+                <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
+                <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
+                <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-[10px] mono">
-              <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
-              <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
-              <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+            <div className="relative hidden lg:block w-[340px] rounded-xl overflow-hidden border border-primary/30 self-end shadow-[0_0_40px_-10px_oklch(0.78_0.17_70/0.5)]">
+              <img src={heroWorldcup} alt="Global tournament montage" className="w-full h-44 object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <div className="text-[10px] mono text-primary">FEATURED EVENT · LIVE</div>
+                <div className="text-sm font-bold leading-tight">Global Tournament Coverage</div>
+                <div className="text-[10px] mono text-muted-foreground mt-0.5">42,180 fingerprints · 64 countries</div>
+              </div>
+              <div className="absolute top-2 right-2 flex items-center gap-1 text-[9px] mono bg-destructive/80 text-destructive-foreground px-1.5 py-0.5 rounded">
+                <span className="w-1 h-1 rounded-full bg-white animate-pulse" /> REC
+              </div>
             </div>
-          </div>
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[10px] mono text-muted-foreground bg-background/60 backdrop-blur px-2 py-1 rounded border border-border">
-            <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse glow-red" />
-            LIVE FEED
           </div>
         </section>
 
