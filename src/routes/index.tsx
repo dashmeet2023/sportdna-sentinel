@@ -8,6 +8,9 @@ import { RevenueEstimator } from "@/components/RevenueEstimator";
 import { Database, AlertOctagon, Globe2, Banknote } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 import { HOURLY_DETECTIONS, PLATFORM_BREAKDOWN } from "@/lib/mockData";
+import heroTrophy from "@/assets/hero-trophy.png";
+import heroPlayer from "@/assets/hero-player.png";
+import heroFans from "@/assets/hero-fans.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,18 +30,32 @@ function Dashboard() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <header className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary">Intelligence Dashboard</div>
-            <h1 className="text-2xl font-bold mt-1">Operations Overview</h1>
-            <p className="text-sm text-muted-foreground">Real-time monitoring of sports media propagation and unauthorized usage.</p>
+        {/* Hero banner */}
+        <section className="relative overflow-hidden rounded-2xl border border-border glass-strong">
+          <div className="absolute inset-0">
+            <img src={heroTrophy} alt="World championship trophy under stadium lights" className="w-full h-full object-cover opacity-40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
-          <div className="flex items-center gap-2 text-[10px] mono">
-            <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
-            <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
-            <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+          <div className="relative p-6 md:p-8 flex items-end justify-between flex-wrap gap-4 min-h-[220px]">
+            <div className="max-w-xl">
+              <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary text-glow-amber">Intelligence Dashboard</div>
+              <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight">
+                Protecting the world's <span className="text-primary text-glow-amber">most-watched</span> moments.
+              </h1>
+              <p className="text-sm text-muted-foreground mt-2">Real-time monitoring of sports media propagation and unauthorized usage across 847 platforms.</p>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] mono">
+              <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
+              <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
+              <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+            </div>
           </div>
-        </header>
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[10px] mono text-muted-foreground bg-background/60 backdrop-blur px-2 py-1 rounded border border-border">
+            <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse glow-red" />
+            LIVE FEED
+          </div>
+        </section>
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Media Assets Protected" value={12847} icon={Database} tone="amber" delta="+184 in last 24h" />
@@ -89,6 +106,29 @@ function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
           </div>
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            { img: heroPlayer, tag: "MATCH FOOTAGE", title: "Live broadcast streams", meta: "327 active fingerprints", risk: "HIGH" },
+            { img: heroFans, tag: "FAN-CAM CONTENT", title: "User-generated reuploads", meta: "1,284 derivative clips traced", risk: "ELEVATED" },
+          ].map((c) => (
+            <div key={c.tag} className="relative h-44 rounded-xl overflow-hidden border border-border group">
+              <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+              <div className="absolute inset-0 grid-bg opacity-20" />
+              <div className="relative h-full p-5 flex flex-col justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] mono px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/40">{c.tag}</span>
+                  <span className="text-[10px] mono px-2 py-0.5 rounded bg-destructive/15 text-destructive border border-destructive/40">RISK · {c.risk}</span>
+                </div>
+                <div>
+                  <div className="text-lg font-bold">{c.title}</div>
+                  <div className="text-xs mono text-muted-foreground">{c.meta}</div>
+                </div>
+              </div>
+            </div>
+          ))}
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
