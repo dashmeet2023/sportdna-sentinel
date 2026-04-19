@@ -10,7 +10,11 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import { HOURLY_DETECTIONS, PLATFORM_BREAKDOWN } from "@/lib/mockData";
 import heroTrophy from "@/assets/hero-trophy.png";
 import heroPlayer from "@/assets/hero-player.png";
-import heroFans from "@/assets/hero-fans.png";
+
+import heroMatch from "@/assets/hero-match.png";
+import heroWorldcup from "@/assets/hero-worldcup.png";
+import heroStars from "@/assets/hero-stars.png";
+import heroCrowd from "@/assets/hero-crowd.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,23 +41,31 @@ function Dashboard() {
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
-          <div className="relative p-6 md:p-8 flex items-end justify-between flex-wrap gap-4 min-h-[220px]">
-            <div className="max-w-xl">
+          <div className="relative p-6 md:p-8 flex items-stretch justify-between flex-wrap gap-6 min-h-[260px]">
+            <div className="max-w-xl flex flex-col justify-end">
               <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary text-glow-amber">Intelligence Dashboard</div>
               <h1 className="text-3xl md:text-4xl font-bold mt-2 leading-tight">
                 Protecting the world's <span className="text-primary text-glow-amber">most-watched</span> moments.
               </h1>
               <p className="text-sm text-muted-foreground mt-2">Real-time monitoring of sports media propagation and unauthorized usage across 847 platforms.</p>
+              <div className="flex flex-wrap items-center gap-2 mt-4 text-[10px] mono">
+                <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
+                <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
+                <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-[10px] mono">
-              <span className="px-2 py-1 rounded bg-success/15 text-success border border-success/40">DETECTION ENGINE OK</span>
-              <span className="px-2 py-1 rounded bg-primary/15 text-primary border border-primary/40">DNA INDEX 12.4M</span>
-              <span className="px-2 py-1 rounded bg-destructive/15 text-destructive border border-destructive/40">847 ACTIVE THREATS</span>
+            <div className="relative hidden lg:block w-[340px] rounded-xl overflow-hidden border border-primary/30 self-end shadow-[0_0_40px_-10px_oklch(0.78_0.17_70/0.5)]">
+              <img src={heroWorldcup} alt="Global tournament montage" className="w-full h-44 object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <div className="text-[10px] mono text-primary">FEATURED EVENT · LIVE</div>
+                <div className="text-sm font-bold leading-tight">Global Tournament Coverage</div>
+                <div className="text-[10px] mono text-muted-foreground mt-0.5">42,180 fingerprints · 64 countries</div>
+              </div>
+              <div className="absolute top-2 right-2 flex items-center gap-1 text-[9px] mono bg-destructive/80 text-destructive-foreground px-1.5 py-0.5 rounded">
+                <span className="w-1 h-1 rounded-full bg-white animate-pulse" /> REC
+              </div>
             </div>
-          </div>
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[10px] mono text-muted-foreground bg-background/60 backdrop-blur px-2 py-1 rounded border border-border">
-            <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse glow-red" />
-            LIVE FEED
           </div>
         </section>
 
@@ -108,27 +120,43 @@ function Dashboard() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { img: heroPlayer, tag: "MATCH FOOTAGE", title: "Live broadcast streams", meta: "327 active fingerprints", risk: "HIGH" },
-            { img: heroFans, tag: "FAN-CAM CONTENT", title: "User-generated reuploads", meta: "1,284 derivative clips traced", risk: "ELEVATED" },
-          ].map((c) => (
-            <div key={c.tag} className="relative h-44 rounded-xl overflow-hidden border border-border group">
-              <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
-              <div className="absolute inset-0 grid-bg opacity-20" />
-              <div className="relative h-full p-5 flex flex-col justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] mono px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/40">{c.tag}</span>
-                  <span className="text-[10px] mono px-2 py-0.5 rounded bg-destructive/15 text-destructive border border-destructive/40">RISK · {c.risk}</span>
-                </div>
-                <div>
-                  <div className="text-lg font-bold">{c.title}</div>
-                  <div className="text-xs mono text-muted-foreground">{c.meta}</div>
-                </div>
-              </div>
+        <section>
+          <div className="flex items-end justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold">PROTECTED EVENT INTELLIGENCE</h3>
+              <p className="text-[10px] mono text-muted-foreground">CATEGORY · ACTIVE FINGERPRINTS · RISK BAND</p>
             </div>
-          ))}
+            <span className="text-[10px] mono text-primary">SHOWING 4 / 28</span>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { img: heroMatch, tag: "MATCH FOOTAGE", title: "Live broadcast streams", meta: "327 fingerprints", risk: "HIGH" },
+              { img: heroPlayer, tag: "PLAYER HIGHLIGHTS", title: "Star athlete clips", meta: "892 derivatives", risk: "CRITICAL" },
+              { img: heroStars, tag: "TOURNAMENT", title: "International cup montage", meta: "1,540 sources", risk: "ELEVATED" },
+              { img: heroCrowd, tag: "FAN-CAM", title: "Stadium crowd reactions", meta: "1,284 reuploads", risk: "MODERATE" },
+            ].map((c) => {
+              const riskTone = c.risk === "CRITICAL" ? "bg-destructive/20 text-destructive border-destructive/50"
+                : c.risk === "HIGH" ? "bg-destructive/15 text-destructive border-destructive/40"
+                : c.risk === "ELEVATED" ? "bg-primary/15 text-primary border-primary/40"
+                : "bg-warning/15 text-warning border-warning/40";
+              return (
+                <div key={c.title} className="relative h-52 rounded-xl overflow-hidden border border-border group cursor-pointer">
+                  <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <div className="absolute inset-0 grid-bg opacity-10" />
+                  <div className="absolute top-2 right-2">
+                    <span className={`text-[9px] mono px-1.5 py-0.5 rounded border ${riskTone}`}>{c.risk}</span>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <span className="text-[9px] mono px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/40">{c.tag}</span>
+                    <div className="text-sm font-bold mt-2 leading-tight">{c.title}</div>
+                    <div className="text-[10px] mono text-muted-foreground">{c.meta}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
