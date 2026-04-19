@@ -10,7 +10,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import { HOURLY_DETECTIONS, PLATFORM_BREAKDOWN } from "@/lib/mockData";
 import heroTrophy from "@/assets/hero-trophy.png";
 import heroPlayer from "@/assets/hero-player.png";
-import heroFans from "@/assets/hero-fans.png";
+
 import heroMatch from "@/assets/hero-match.png";
 import heroWorldcup from "@/assets/hero-worldcup.png";
 import heroStars from "@/assets/hero-stars.png";
