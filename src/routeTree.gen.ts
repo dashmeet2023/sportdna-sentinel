@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TimelineRouteImport } from './routes/timeline'
+import { Route as TakedownRouteImport } from './routes/takedown'
+import { Route as SimulationRouteImport } from './routes/simulation'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as DnaRouteImport } from './routes/dna'
+import { Route as DetectionRouteImport } from './routes/detection'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TimelineRoute = TimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TakedownRoute = TakedownRouteImport.update({
+  id: '/takedown',
+  path: '/takedown',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimulationRoute = SimulationRouteImport.update({
+  id: '/simulation',
+  path: '/simulation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DnaRoute = DnaRouteImport.update({
+  id: '/dna',
+  path: '/dna',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DetectionRoute = DetectionRouteImport.update({
+  id: '/detection',
+  path: '/detection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/detection': typeof DetectionRoute
+  '/dna': typeof DnaRoute
+  '/map': typeof MapRoute
+  '/simulation': typeof SimulationRoute
+  '/takedown': typeof TakedownRoute
+  '/timeline': typeof TimelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/detection': typeof DetectionRoute
+  '/dna': typeof DnaRoute
+  '/map': typeof MapRoute
+  '/simulation': typeof SimulationRoute
+  '/takedown': typeof TakedownRoute
+  '/timeline': typeof TimelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/detection': typeof DetectionRoute
+  '/dna': typeof DnaRoute
+  '/map': typeof MapRoute
+  '/simulation': typeof SimulationRoute
+  '/takedown': typeof TakedownRoute
+  '/timeline': typeof TimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/detection'
+    | '/dna'
+    | '/map'
+    | '/simulation'
+    | '/takedown'
+    | '/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/detection'
+    | '/dna'
+    | '/map'
+    | '/simulation'
+    | '/takedown'
+    | '/timeline'
+  id:
+    | '__root__'
+    | '/'
+    | '/detection'
+    | '/dna'
+    | '/map'
+    | '/simulation'
+    | '/takedown'
+    | '/timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DetectionRoute: typeof DetectionRoute
+  DnaRoute: typeof DnaRoute
+  MapRoute: typeof MapRoute
+  SimulationRoute: typeof SimulationRoute
+  TakedownRoute: typeof TakedownRoute
+  TimelineRoute: typeof TimelineRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/timeline': {
+      id: '/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof TimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/takedown': {
+      id: '/takedown'
+      path: '/takedown'
+      fullPath: '/takedown'
+      preLoaderRoute: typeof TakedownRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulation': {
+      id: '/simulation'
+      path: '/simulation'
+      fullPath: '/simulation'
+      preLoaderRoute: typeof SimulationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dna': {
+      id: '/dna'
+      path: '/dna'
+      fullPath: '/dna'
+      preLoaderRoute: typeof DnaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/detection': {
+      id: '/detection'
+      path: '/detection'
+      fullPath: '/detection'
+      preLoaderRoute: typeof DetectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,16 +177,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DetectionRoute: DetectionRoute,
+  DnaRoute: DnaRoute,
+  MapRoute: MapRoute,
+  SimulationRoute: SimulationRoute,
+  TakedownRoute: TakedownRoute,
+  TimelineRoute: TimelineRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
