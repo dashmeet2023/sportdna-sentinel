@@ -88,14 +88,6 @@ function Dashboard() {
                 style={{ animationDelay: `${i * 6}s` }}
               />
             ))}
-              <img
-                key={i}
-                src={img}
-                alt="Sports media hero"
-                className="absolute inset-0 w-full h-full object-cover animate-ken-burns"
-                style={{ animationDelay: `${i * 6}s` }}
-              />
-            ))}
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
