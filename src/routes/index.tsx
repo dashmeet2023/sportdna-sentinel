@@ -38,13 +38,15 @@ function Dashboard() {
   const heroLabels = ["TROPHY", "TOURNAMENT", "STARS", "CROWD"];
   const SLIDE_DURATION = 6000; // 24s loop / 4 images
   const [activeSlide, setActiveSlide] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    if (paused) return;
     const id = setInterval(() => {
       setActiveSlide((s) => (s + 1) % heroImages.length);
     }, SLIDE_DURATION);
     return () => clearInterval(id);
-  }, [heroImages.length]);
+  }, [heroImages.length, paused]);
 
   useEffect(() => {
     let raf = 0;
@@ -148,7 +150,13 @@ function Dashboard() {
             </div>
           </div>
           {/* Slide indicators */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+          <div
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocusCapture={() => setPaused(true)}
+            onBlurCapture={() => setPaused(false)}
+          >
             {heroImages.map((_, i) => {
               const active = i === activeSlide;
               return (
