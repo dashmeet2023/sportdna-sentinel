@@ -79,15 +79,19 @@ function Dashboard() {
             className="absolute inset-0 -top-8 -bottom-8 will-change-transform"
             style={{ transform: `translate3d(0, ${parallaxY}px, 0)` }}
           >
-            {heroImages.map((img, i) => (
-              <img
-                key={i}
-                src={img}
-                alt="Sports media hero"
-                className="absolute inset-0 w-full h-full object-cover animate-ken-burns"
-                style={{ animationDelay: `${i * 6}s` }}
-              />
-            ))}
+            {heroImages.map((img, i) => {
+              const active = i === activeSlide;
+              return (
+                <img
+                  key={i}
+                  src={img}
+                  alt="Sports media hero"
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out ${
+                    active ? "opacity-50 animate-ken-burns-active" : "opacity-0"
+                  }`}
+                />
+              );
+            })}
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
