@@ -123,6 +123,36 @@ function Dashboard() {
               );
             })}
           </div>
+          {/* Radar sweep — SOC vibe */}
+          <div className="pointer-events-none absolute top-3 right-3 lg:top-4 lg:right-[360px] z-10 hidden sm:block">
+            <div className="relative w-20 h-20">
+              {/* concentric rings */}
+              <div className="absolute inset-0 rounded-full border border-primary/30" />
+              <div className="absolute inset-[18%] rounded-full border border-primary/25" />
+              <div className="absolute inset-[40%] rounded-full border border-primary/20" />
+              {/* crosshair */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-full h-px bg-primary/15" />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-full w-px bg-primary/15" />
+              </div>
+              {/* sweep beam */}
+              <div className="absolute inset-0 rounded-full overflow-hidden">
+                <div className="radar-sweep absolute inset-0 rounded-full origin-center" />
+              </div>
+              {/* outer pulse */}
+              <div className="absolute inset-0 rounded-full border border-primary/40 radar-pulse" />
+              {/* center dot */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_oklch(0.78_0.17_70/0.9)]" />
+              </div>
+              {/* label */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[8px] mono tracking-[0.2em] text-primary/80 whitespace-nowrap">
+                SCAN · 360°
+              </div>
+            </div>
+          </div>
           <div className="relative p-6 md:p-8 flex items-stretch justify-between flex-wrap gap-6 min-h-[260px]">
             <div className="max-w-xl flex flex-col justify-end">
               <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary text-glow-amber">Intelligence Dashboard</div>
