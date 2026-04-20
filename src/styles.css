@@ -241,5 +241,16 @@
     animation: radar-pulse 3.5s ease-out infinite;
   }
 
+  @keyframes slide-progress {
+    from { width: 0%; }
+    to   { width: 100%; }
+  }
+  .animate-slide-progress {
+    animation-name: slide-progress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+  }
+
   .mono { font-family: var(--font-mono); }
 }
