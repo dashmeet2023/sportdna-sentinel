@@ -80,6 +80,32 @@ function Dashboard() {
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
+          {/* Animated grid + particles overlay (cyberpunk depth) */}
+          <div className="pointer-events-none absolute inset-0 grid-drift opacity-60 mix-blend-screen" />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {Array.from({ length: 18 }).map((_, i) => {
+              const left = (i * 53) % 100;
+              const delay = (i * 0.7) % 9;
+              const duration = 8 + ((i * 1.3) % 7);
+              const drift = ((i % 5) - 2) * 18;
+              const size = 2 + (i % 3);
+              return (
+                <span
+                  key={i}
+                  className="particle"
+                  style={{
+                    left: `${left}%`,
+                    bottom: `-10px`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    animationDelay: `${delay}s`,
+                    animationDuration: `${duration}s`,
+                    ["--px" as string]: `${drift}px`,
+                  }}
+                />
+              );
+            })}
+          </div>
           <div className="relative p-6 md:p-8 flex items-stretch justify-between flex-wrap gap-6 min-h-[260px]">
             <div className="max-w-xl flex flex-col justify-end">
               <div className="text-[11px] mono uppercase tracking-[0.2em] text-primary text-glow-amber">Intelligence Dashboard</div>
