@@ -198,13 +198,20 @@ function Dashboard() {
                   onClick={() => setActiveSlide(i)}
                   className={`group flex items-center gap-1.5 transition-all ${active ? "" : "opacity-60 hover:opacity-100"}`}
                 >
-                  <span
-                    className={`block h-1.5 rounded-full transition-all duration-500 ${
-                      active
-                        ? "w-8 bg-primary shadow-[0_0_10px_oklch(0.78_0.17_70/0.8)]"
-                        : "w-1.5 bg-foreground/40 group-hover:bg-foreground/70"
-                    }`}
-                  />
+                  {active ? (
+                    <span className="relative block h-1.5 w-8 rounded-full bg-primary/25 overflow-hidden shadow-[0_0_10px_oklch(0.78_0.17_70/0.6)]">
+                      <span
+                        key={activeSlide}
+                        className="absolute inset-y-0 left-0 bg-primary rounded-full animate-slide-progress"
+                        style={{
+                          animationDuration: `${SLIDE_DURATION}ms`,
+                          animationPlayState: paused ? "paused" : "running",
+                        }}
+                      />
+                    </span>
+                  ) : (
+                    <span className="block h-1.5 w-1.5 rounded-full bg-foreground/40 group-hover:bg-foreground/70 transition-all duration-500" />
+                  )}
                   {active && (
                     <span className="text-[9px] mono uppercase tracking-[0.2em] text-primary">{heroLabels[i]}</span>
                   )}
