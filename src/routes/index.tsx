@@ -37,7 +37,15 @@ function Dashboard() {
         {/* Hero banner */}
         <section className="relative overflow-hidden rounded-2xl border border-border glass-strong">
           <div className="absolute inset-0">
-            <img src={heroTrophy} alt="World championship trophy under stadium lights" className="w-full h-full object-cover opacity-40" />
+            {[heroTrophy, heroWorldcup, heroStars, heroCrowd].map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt="Sports media hero"
+                className="absolute inset-0 w-full h-full object-cover animate-ken-burns"
+                style={{ animationDelay: `${i * 6}s` }}
+              />
+            ))}
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
           </div>
