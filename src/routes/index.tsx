@@ -38,13 +38,15 @@ function Dashboard() {
   const heroLabels = ["TROPHY", "TOURNAMENT", "STARS", "CROWD"];
   const SLIDE_DURATION = 6000; // 24s loop / 4 images
   const [activeSlide, setActiveSlide] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    if (paused) return;
     const id = setInterval(() => {
       setActiveSlide((s) => (s + 1) % heroImages.length);
     }, SLIDE_DURATION);
     return () => clearInterval(id);
-  }, [heroImages.length]);
+  }, [heroImages.length, paused]);
 
   useEffect(() => {
     let raf = 0;
