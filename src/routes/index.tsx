@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { StatCard } from "@/components/StatCard";
 import { ActivityFeed } from "@/components/ActivityFeed";
@@ -31,12 +32,42 @@ export const Route = createFileRoute("/")({
 const PIE_COLORS = ["oklch(0.78 0.17 70)", "oklch(0.65 0.22 25)", "oklch(0.72 0.17 155)", "oklch(0.70 0.15 250)", "oklch(0.82 0.17 85)", "oklch(0.55 0.05 60)"];
 
 function Dashboard() {
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [parallaxY, setParallaxY] = useState(0);
+
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const el = heroRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        // Shift image layer up to ~40px as the hero scrolls past viewport
+        const progress = Math.max(-1, Math.min(1, -rect.top / Math.max(1, rect.height)));
+        setParallaxY(progress * 40);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <AppShell>
       <div className="space-y-6">
         {/* Hero banner */}
-        <section className="relative overflow-hidden rounded-2xl border border-border glass-strong">
-          <div className="absolute inset-0">
+        <section ref={heroRef} className="relative overflow-hidden rounded-2xl border border-border glass-strong">
+          <div
+            className="absolute inset-0 -top-8 -bottom-8 will-change-transform"
+            style={{ transform: `translate3d(0, ${parallaxY}px, 0)` }}
+          >
             {[heroTrophy, heroWorldcup, heroStars, heroCrowd].map((img, i) => (
               <img
                 key={i}
