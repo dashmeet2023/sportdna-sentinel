@@ -150,7 +150,13 @@ function Dashboard() {
             </div>
           </div>
           {/* Slide indicators */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+          <div
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocusCapture={() => setPaused(true)}
+            onBlurCapture={() => setPaused(false)}
+          >
             {heroImages.map((_, i) => {
               const active = i === activeSlide;
               return (
