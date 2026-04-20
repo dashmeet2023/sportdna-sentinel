@@ -143,6 +143,33 @@ function Dashboard() {
               </div>
             </div>
           </div>
+          {/* Slide indicators */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+            {heroImages.map((_, i) => {
+              const active = i === activeSlide;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Show ${heroLabels[i]} slide`}
+                  aria-current={active}
+                  onClick={() => setActiveSlide(i)}
+                  className={`group flex items-center gap-1.5 transition-all ${active ? "" : "opacity-60 hover:opacity-100"}`}
+                >
+                  <span
+                    className={`block h-1.5 rounded-full transition-all duration-500 ${
+                      active
+                        ? "w-8 bg-primary shadow-[0_0_10px_oklch(0.78_0.17_70/0.8)]"
+                        : "w-1.5 bg-foreground/40 group-hover:bg-foreground/70"
+                    }`}
+                  />
+                  {active && (
+                    <span className="text-[9px] mono uppercase tracking-[0.2em] text-primary">{heroLabels[i]}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
