@@ -179,5 +179,17 @@
   .animate-float-up { animation: float-up 0.4s ease-out both; }
   .animate-ticker { animation: ticker 40s linear infinite; }
 
+  @keyframes ken-burns {
+    0%   { transform: scale(1.05) translate(0, 0); opacity: 0; }
+    8%   { opacity: 0.4; }
+    40%  { opacity: 0.4; }
+    50%  { transform: scale(1.18) translate(-2%, -1.5%); opacity: 0; }
+    100% { opacity: 0; }
+  }
+  .animate-ken-burns {
+    animation: ken-burns 24s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
   .mono { font-family: var(--font-mono); }
 }
