@@ -34,6 +34,17 @@ const PIE_COLORS = ["oklch(0.78 0.17 70)", "oklch(0.65 0.22 25)", "oklch(0.72 0.
 function Dashboard() {
   const heroRef = useRef<HTMLElement | null>(null);
   const [parallaxY, setParallaxY] = useState(0);
+  const heroImages = [heroTrophy, heroWorldcup, heroStars, heroCrowd];
+  const heroLabels = ["TROPHY", "TOURNAMENT", "STARS", "CROWD"];
+  const SLIDE_DURATION = 6000; // 24s loop / 4 images
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setActiveSlide((s) => (s + 1) % heroImages.length);
+    }, SLIDE_DURATION);
+    return () => clearInterval(id);
+  }, [heroImages.length]);
 
   useEffect(() => {
     let raf = 0;
