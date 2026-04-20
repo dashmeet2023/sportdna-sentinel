@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { StatCard } from "@/components/StatCard";
 import { ActivityFeed } from "@/components/ActivityFeed";
