@@ -143,6 +143,30 @@ function Dashboard() {
               </div>
               {/* outer pulse */}
               <div className="absolute inset-0 rounded-full border border-primary/40 radar-pulse" />
+              {/* radar blips — angle (deg from 12 o'clock) controls delay; radius is % from center */}
+              {[
+                { angle: 55, radius: 32 },
+                { angle: 165, radius: 22 },
+                { angle: 250, radius: 36 },
+                { angle: 320, radius: 18 },
+              ].map((b, i) => {
+                const rad = (b.angle - 90) * (Math.PI / 180); // 0deg = up
+                const x = 50 + b.radius * Math.cos(rad);
+                const y = 50 + b.radius * Math.sin(rad);
+                const delay = (b.angle / 360) * 3.5; // sweep period
+                return (
+                  <span
+                    key={i}
+                    className="radar-blip"
+                    style={{
+                      left: `${x}%`,
+                      top: `${y}%`,
+                      transform: "translate(-50%, -50%)",
+                      animationDelay: `${delay}s`,
+                    }}
+                  />
+                );
+              })}
               {/* center dot */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_oklch(0.78_0.17_70/0.9)]" />
