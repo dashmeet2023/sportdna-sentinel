@@ -79,7 +79,15 @@ function Dashboard() {
             className="absolute inset-0 -top-8 -bottom-8 will-change-transform"
             style={{ transform: `translate3d(0, ${parallaxY}px, 0)` }}
           >
-            {[heroTrophy, heroWorldcup, heroStars, heroCrowd].map((img, i) => (
+            {heroImages.map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt="Sports media hero"
+                className="absolute inset-0 w-full h-full object-cover animate-ken-burns"
+                style={{ animationDelay: `${i * 6}s` }}
+              />
+            ))}
               <img
                 key={i}
                 src={img}
