@@ -3,8 +3,8 @@ import { geoNaturalEarth1, geoPath, geoCentroid } from "d3-geo";
 import { feature } from "topojson-client";
 import worldData from "world-atlas/countries-110m.json";
 import { PROPAGATION_EDGES, PROPAGATION_NODES, Country } from "@/lib/mockData";
-import type { FeatureCollection, Geometry } from "geojson";
-import type { Topology } from "topojson-specification";
+type AnyFeature = { type: string; geometry: unknown; properties?: Record<string, unknown> };
+type AnyFeatureCollection = { type: "FeatureCollection"; features: AnyFeature[] };
 
 export function PropagationMap({ height = 520 }: { height?: number }) {
   const ref = useRef<HTMLDivElement>(null);
