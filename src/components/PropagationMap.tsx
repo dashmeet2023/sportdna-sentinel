@@ -19,11 +19,11 @@ export function PropagationMap({ height = 520 }: { height?: number }) {
   }, []);
 
   const { paths, projected, edges } = useMemo(() => {
-    const topo = worldData as unknown as Topology;
-    const geo = feature(topo, topo.objects.countries) as unknown as FeatureCollection<Geometry>;
-    const proj = geoNaturalEarth1().fitSize([w, height], geo);
+    const topo = worldData as any;
+    const geo = feature(topo, topo.objects.countries) as unknown as AnyFeatureCollection;
+    const proj = geoNaturalEarth1().fitSize([w, height], geo as any);
     const path = geoPath(proj);
-    const paths = geo.features.map((f, i) => ({ d: path(f) ?? "", id: i }));
+    const paths = geo.features.map((f: AnyFeature, i: number) => ({ d: path(f as any) ?? "", id: i }));
 
     const projected: Record<string, [number, number]> = {};
     for (const n of PROPAGATION_NODES) {
