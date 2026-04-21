@@ -256,6 +256,25 @@
     will-change: opacity, transform;
   }
 
+  @keyframes radar-blip-label {
+    0%, 100% { opacity: 0; transform: translate(8px, -50%) scale(0.9); }
+    2%       { opacity: 1; transform: translate(8px, -50%) scale(1); }
+    35%      { opacity: 1; transform: translate(8px, -50%) scale(1); }
+    55%      { opacity: 0; transform: translate(8px, -50%) scale(0.95); }
+  }
+  .radar-blip-label {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    opacity: 0;
+    animation: radar-blip-label 3.5s linear infinite;
+    will-change: opacity, transform;
+  }
+
   @keyframes slide-progress {
     from { width: 0%; }
     to   { width: 100%; }
