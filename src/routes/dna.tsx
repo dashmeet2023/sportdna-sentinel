@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GuardianAgent } from "@/components/GuardianAgent";
 import { useRef, useState } from "react";
-import { Upload, Fingerprint, Shield, FileCheck, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/dna")({
   head: () => ({
@@ -25,11 +26,114 @@ function DNAPage() {
   const [progress, setProgress] = useState(0);
   const [hash, setHash] = useState("");
   const [mediaId, setMediaId] = useState("");
+  const [registered, setRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [txHash, setTxHash] = useState("");
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   function reset() {
     setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
+    setRegistered(false); setRegistering(false); setTxHash(""); setCopied(false);
+  }
+
+  async function loadDemoSample() {
+    reset();
+    // 1x1 mp4 won't seek; instead synthesize frames from canvas as a "demo"
+    setStage("frames");
+    const out: FrameData[] = [];
+    const canvas = document.createElement("canvas");
+    canvas.width = 240; canvas.height = 135;
+    const ctx = canvas.getContext("2d")!;
+    const stamps = [0.5, 1.2, 2.1, 3.0, 4.2, 5.5];
+    for (let i = 0; i < stamps.length; i++) {
+      const t = stamps[i];
+      // gradient + moving "ball"
+      const g = ctx.createLinearGradient(0, 0, 240, 135);
+      g.addColorStop(0, `oklch(0.35 0.08 ${120 + i * 8})`);
+      g.addColorStop(1, `oklch(0.18 0.04 ${260 - i * 6})`);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 240, 135);
+      ctx.strokeStyle = "oklch(0.85 0.05 100 / 0.4)"; ctx.lineWidth = 1;
+      for (let x = 20; x < 240; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 135); ctx.stroke(); }
+      ctx.fillStyle = "oklch(0.92 0.16 70)";
+      const bx = 30 + i * 32, by = 60 + Math.sin(i) * 25;
+      ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "oklch(0.95 0 0 / 0.85)"; ctx.font = "bold 11px monospace";
+      ctx.fillText(`DEMO · t=${t.toFixed(1)}s`, 8, 16);
+      out.push({ url: canvas.toDataURL("image/jpeg", 0.7), t });
+      setFrames([...out]);
+      setProgress(Math.round((out.length / stamps.length) * 35));
+      await new Promise((r) => setTimeout(r, 220));
+    }
+    // Fake "file" for downstream display
+    const blob = new Blob([new Uint8Array(64 * 1024).map((_, i) => (i * 31) & 0xff)], { type: "video/mp4" });
+    const fakeFile = new File([blob], "demo-highlight.mp4", { type: "video/mp4" });
+    setFile(fakeFile);
+
+    setStage("embed");
+    for (let i = 35; i <= 60; i += 4) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
+
+    setStage("dna");
+    const buf = await fakeFile.arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    setHash(hex.slice(0, 48));
+    setMediaId("MID-" + hex.slice(0, 6).toUpperCase());
+    for (let i = 60; i <= 85; i += 5) { await new Promise((r) => setTimeout(r, 80)); setProgress(i); }
+
+    setStage("watermark");
+    for (let i = 85; i <= 100; i += 5) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
+    setStage("done");
+    toast.success("Demo fingerprint generated", { description: "Synthetic clip processed end-to-end." });
+  }
+
+  async function registerOnChain() {
+    if (stage !== "done" || registering || registered) return;
+    setRegistering(true);
+    toast.loading("Broadcasting DNA hash to ledger…", { id: "chain" });
+    await new Promise((r) => setTimeout(r, 1400));
+    const tx = "0x" + Array.from({ length: 32 }).map(() => Math.floor(Math.random() * 16).toString(16)).join("");
+    setTxHash(tx);
+    setRegistered(true);
+    setRegistering(false);
+    toast.success("Registered on chain", { id: "chain", description: `Tx ${tx.slice(0, 14)}…` });
+  }
+
+  function downloadCertificate() {
+    if (stage !== "done") return;
+    const cert = {
+      type: "SportDNA Ownership Certificate",
+      version: "1.0",
+      mediaId,
+      file: file ? { name: file.name, sizeBytes: file.size, mime: file.type } : null,
+      dnaHash: hash,
+      embeddingDim: 768,
+      framesAnalyzed: frames.length,
+      watermark: { embedded: true, scheme: "LCMS-v2", invisible: true },
+      chain: registered ? { network: "sportdna-testnet", tx: txHash, registeredAt: new Date().toISOString() } : null,
+      issuedAt: new Date().toISOString(),
+      issuer: "SportDNA Guardian Authority",
+    };
+    const blob = new Blob([JSON.stringify(cert, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${mediaId || "sportdna"}-certificate.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Certificate downloaded", { description: `${mediaId}-certificate.json` });
+  }
+
+  async function copyHash() {
+    if (!hash) return;
+    try {
+      await navigator.clipboard.writeText(hash);
+      setCopied(true);
+      toast("DNA hash copied");
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Copy failed");
+    }
   }
 
   async function handleFile(f: File) {
