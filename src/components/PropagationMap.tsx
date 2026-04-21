@@ -69,7 +69,7 @@ export function PropagationMap({ height = 520 }: { height?: number }) {
             </linearGradient>
           </defs>
 
-          {paths.map((p) => (
+          {paths.map((p: { id: number; d: string }) => (
             <path key={p.id} d={p.d} fill="oklch(0.22 0.005 60)" stroke="oklch(1 0 0 / 0.08)" strokeWidth={0.5} />
           ))}
 
