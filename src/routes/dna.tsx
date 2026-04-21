@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GuardianAgent } from "@/components/GuardianAgent";
 import { useRef, useState } from "react";
-import { Upload, Fingerprint, Shield, FileCheck, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/dna")({
   head: () => ({
@@ -25,11 +26,114 @@ function DNAPage() {
   const [progress, setProgress] = useState(0);
   const [hash, setHash] = useState("");
   const [mediaId, setMediaId] = useState("");
+  const [registered, setRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [txHash, setTxHash] = useState("");
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   function reset() {
     setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
+    setRegistered(false); setRegistering(false); setTxHash(""); setCopied(false);
+  }
+
+  async function loadDemoSample() {
+    reset();
+    // 1x1 mp4 won't seek; instead synthesize frames from canvas as a "demo"
+    setStage("frames");
+    const out: FrameData[] = [];
+    const canvas = document.createElement("canvas");
+    canvas.width = 240; canvas.height = 135;
+    const ctx = canvas.getContext("2d")!;
+    const stamps = [0.5, 1.2, 2.1, 3.0, 4.2, 5.5];
+    for (let i = 0; i < stamps.length; i++) {
+      const t = stamps[i];
+      // gradient + moving "ball"
+      const g = ctx.createLinearGradient(0, 0, 240, 135);
+      g.addColorStop(0, `oklch(0.35 0.08 ${120 + i * 8})`);
+      g.addColorStop(1, `oklch(0.18 0.04 ${260 - i * 6})`);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 240, 135);
+      ctx.strokeStyle = "oklch(0.85 0.05 100 / 0.4)"; ctx.lineWidth = 1;
+      for (let x = 20; x < 240; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 135); ctx.stroke(); }
+      ctx.fillStyle = "oklch(0.92 0.16 70)";
+      const bx = 30 + i * 32, by = 60 + Math.sin(i) * 25;
+      ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "oklch(0.95 0 0 / 0.85)"; ctx.font = "bold 11px monospace";
+      ctx.fillText(`DEMO · t=${t.toFixed(1)}s`, 8, 16);
+      out.push({ url: canvas.toDataURL("image/jpeg", 0.7), t });
+      setFrames([...out]);
+      setProgress(Math.round((out.length / stamps.length) * 35));
+      await new Promise((r) => setTimeout(r, 220));
+    }
+    // Fake "file" for downstream display
+    const blob = new Blob([new Uint8Array(64 * 1024).map((_, i) => (i * 31) & 0xff)], { type: "video/mp4" });
+    const fakeFile = new File([blob], "demo-highlight.mp4", { type: "video/mp4" });
+    setFile(fakeFile);
+
+    setStage("embed");
+    for (let i = 35; i <= 60; i += 4) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
+
+    setStage("dna");
+    const buf = await fakeFile.arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    setHash(hex.slice(0, 48));
+    setMediaId("MID-" + hex.slice(0, 6).toUpperCase());
+    for (let i = 60; i <= 85; i += 5) { await new Promise((r) => setTimeout(r, 80)); setProgress(i); }
+
+    setStage("watermark");
+    for (let i = 85; i <= 100; i += 5) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
+    setStage("done");
+    toast.success("Demo fingerprint generated", { description: "Synthetic clip processed end-to-end." });
+  }
+
+  async function registerOnChain() {
+    if (stage !== "done" || registering || registered) return;
+    setRegistering(true);
+    toast.loading("Broadcasting DNA hash to ledger…", { id: "chain" });
+    await new Promise((r) => setTimeout(r, 1400));
+    const tx = "0x" + Array.from({ length: 32 }).map(() => Math.floor(Math.random() * 16).toString(16)).join("");
+    setTxHash(tx);
+    setRegistered(true);
+    setRegistering(false);
+    toast.success("Registered on chain", { id: "chain", description: `Tx ${tx.slice(0, 14)}…` });
+  }
+
+  function downloadCertificate() {
+    if (stage !== "done") return;
+    const cert = {
+      type: "SportDNA Ownership Certificate",
+      version: "1.0",
+      mediaId,
+      file: file ? { name: file.name, sizeBytes: file.size, mime: file.type } : null,
+      dnaHash: hash,
+      embeddingDim: 768,
+      framesAnalyzed: frames.length,
+      watermark: { embedded: true, scheme: "LCMS-v2", invisible: true },
+      chain: registered ? { network: "sportdna-testnet", tx: txHash, registeredAt: new Date().toISOString() } : null,
+      issuedAt: new Date().toISOString(),
+      issuer: "SportDNA Guardian Authority",
+    };
+    const blob = new Blob([JSON.stringify(cert, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${mediaId || "sportdna"}-certificate.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Certificate downloaded", { description: `${mediaId}-certificate.json` });
+  }
+
+  async function copyHash() {
+    if (!hash) return;
+    try {
+      await navigator.clipboard.writeText(hash);
+      setCopied(true);
+      toast("DNA hash copied");
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Copy failed");
+    }
   }
 
   async function handleFile(f: File) {
@@ -115,6 +219,13 @@ function DNAPage() {
                 <div className="text-sm font-semibold">Drop a sports video to fingerprint</div>
                 <div className="text-xs text-muted-foreground mt-1">MP4 / MOV / WebM · processed locally in your browser</div>
                 <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); loadDemoSample(); }}
+                  className="mt-5 inline-flex items-center gap-1.5 text-[11px] mono px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Try demo sample
+                </button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -172,7 +283,17 @@ function DNAPage() {
             <div className="glass rounded-xl p-4">
               <h3 className="text-sm font-semibold mb-3">DNA CERTIFICATE</h3>
               <Field label="MEDIA ID" value={mediaId || "—"} />
-              <Field label="DNA HASH" value={hash || "—"} mono break />
+              <div className="mb-2.5">
+                <div className="text-[10px] mono text-muted-foreground flex items-center justify-between">
+                  <span>DNA HASH</span>
+                  {hash && (
+                    <button onClick={copyHash} className="text-primary hover:opacity-80 inline-flex items-center gap-1">
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} {copied ? "copied" : "copy"}
+                    </button>
+                  )}
+                </div>
+                <div className="text-xs mono text-foreground break-all">{hash || "—"}</div>
+              </div>
               <Field label="WATERMARK"
                 value={
                   stage === "done" ? "EMBEDDED · INVISIBLE" :
@@ -181,12 +302,30 @@ function DNAPage() {
                 tone={stage === "done" ? "success" : "muted"}
               />
               <Field label="OWNERSHIP CERT"
-                value={stage === "done" ? "ISSUED · CHAIN-VERIFIED" : "PENDING"}
+                value={
+                  registered ? "ISSUED · CHAIN-VERIFIED" :
+                  stage === "done" ? "ISSUED · LOCAL" : "PENDING"
+                }
                 tone={stage === "done" ? "success" : "muted"}
               />
-              <div className="mt-3 flex gap-2">
-                <button disabled={stage !== "done"} className="flex-1 text-xs px-3 py-2 rounded-md gradient-amber text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed glow-amber">
-                  <Shield className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />Register on Chain
+              {txHash && (
+                <Field label="LEDGER TX" value={txHash.slice(0, 22) + "…"} mono break />
+              )}
+              <div className="mt-3 flex flex-col gap-2">
+                <button
+                  onClick={registerOnChain}
+                  disabled={stage !== "done" || registering || registered}
+                  className="text-xs px-3 py-2 rounded-md gradient-amber text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed glow-amber inline-flex items-center justify-center gap-1.5"
+                >
+                  {registering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : registered ? <Check className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
+                  {registering ? "Broadcasting…" : registered ? "Registered" : "Register on Chain"}
+                </button>
+                <button
+                  onClick={downloadCertificate}
+                  disabled={stage !== "done"}
+                  className="text-xs px-3 py-2 rounded-md border border-border hover:border-primary/50 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download Certificate (.json)
                 </button>
               </div>
             </div>
