@@ -3,8 +3,8 @@ import { geoNaturalEarth1, geoPath, geoCentroid } from "d3-geo";
 import { feature } from "topojson-client";
 import worldData from "world-atlas/countries-110m.json";
 import { PROPAGATION_EDGES, PROPAGATION_NODES, Country } from "@/lib/mockData";
-import type { FeatureCollection, Geometry } from "geojson";
-import type { Topology } from "topojson-specification";
+type AnyFeature = { type: string; geometry: unknown; properties?: Record<string, unknown> };
+type AnyFeatureCollection = { type: "FeatureCollection"; features: AnyFeature[] };
 
 export function PropagationMap({ height = 520 }: { height?: number }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -19,11 +19,11 @@ export function PropagationMap({ height = 520 }: { height?: number }) {
   }, []);
 
   const { paths, projected, edges } = useMemo(() => {
-    const topo = worldData as unknown as Topology;
-    const geo = feature(topo, topo.objects.countries) as unknown as FeatureCollection<Geometry>;
-    const proj = geoNaturalEarth1().fitSize([w, height], geo);
+    const topo = worldData as any;
+    const geo = feature(topo, topo.objects.countries) as unknown as AnyFeatureCollection;
+    const proj = geoNaturalEarth1().fitSize([w, height], geo as any);
     const path = geoPath(proj);
-    const paths = geo.features.map((f, i) => ({ d: path(f) ?? "", id: i }));
+    const paths = geo.features.map((f: AnyFeature, i: number) => ({ d: path(f as any) ?? "", id: i }));
 
     const projected: Record<string, [number, number]> = {};
     for (const n of PROPAGATION_NODES) {
@@ -69,7 +69,7 @@ export function PropagationMap({ height = 520 }: { height?: number }) {
             </linearGradient>
           </defs>
 
-          {paths.map((p) => (
+          {paths.map((p: { id: number; d: string }) => (
             <path key={p.id} d={p.d} fill="oklch(0.22 0.005 60)" stroke="oklch(1 0 0 / 0.08)" strokeWidth={0.5} />
           ))}
 
