@@ -145,10 +145,10 @@ function Dashboard() {
               <div className="absolute inset-0 rounded-full border border-primary/40 radar-pulse" />
               {/* radar blips — angle (deg from 12 o'clock) controls delay; radius is % from center */}
               {[
-                { angle: 55, radius: 32 },
-                { angle: 165, radius: 22 },
-                { angle: 250, radius: 36 },
-                { angle: 320, radius: 18 },
+                { angle: 55, radius: 32, label: null },
+                { angle: 165, radius: 22, label: "TG-44 · MOSCOW" },
+                { angle: 250, radius: 36, label: null },
+                { angle: 320, radius: 18, label: null },
               ].map((b, i) => {
                 const rad = (b.angle - 90) * (Math.PI / 180); // 0deg = up
                 const x = 50 + b.radius * Math.cos(rad);
@@ -164,7 +164,19 @@ function Dashboard() {
                       transform: "translate(-50%, -50%)",
                       animationDelay: `${delay}s`,
                     }}
-                  />
+                  >
+                    {b.label && (
+                      <span
+                        className="radar-blip-label"
+                        style={{ animationDelay: `${delay}s` }}
+                      >
+                        <span className="block w-2 h-px bg-destructive/70" />
+                        <span className="px-1 py-0.5 rounded-sm bg-background/90 border border-destructive/50 text-destructive text-[7px] mono tracking-[0.15em] whitespace-nowrap shadow-[0_0_8px_oklch(0.65_0.22_25/0.4)]">
+                          {b.label}
+                        </span>
+                      </span>
+                    )}
+                  </span>
                 );
               })}
               {/* center dot */}
