@@ -205,8 +205,8 @@ function DNAPage() {
 
     // DNA hash — derive from embedding so the hash IS the perceptual fingerprint
     setStage("dna");
-    const embBytes = new Uint8Array(clipEmb.buffer.slice(0));
-    const digest = await crypto.subtle.digest("SHA-256", embBytes);
+    const embBytes = new Uint8Array(clipEmb.buffer as ArrayBuffer);
+    const digest = await crypto.subtle.digest("SHA-256", embBytes.slice());
     const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
     setHash(hex.slice(0, 48));
     setMediaId("MID-" + hex.slice(0, 6).toUpperCase());
