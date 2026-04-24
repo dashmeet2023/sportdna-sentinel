@@ -18,6 +18,23 @@ export const Route = createFileRoute("/dna")({
 });
 
 interface FrameData { url: string; t: number; }
+interface RegisteredAsset {
+  mediaId: string;
+  fileName: string;
+  sizeBytes: number;
+  dnaHash: string;
+  txHash: string;
+  network: string;
+  registeredAt: string;
+}
+const REGISTRY_KEY = "sportdna.registry.v1";
+function loadRegistry(): RegisteredAsset[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(REGISTRY_KEY) || "[]"); } catch { return []; }
+}
+function saveRegistry(list: RegisteredAsset[]) {
+  try { localStorage.setItem(REGISTRY_KEY, JSON.stringify(list)); } catch {}
+}
 
 function DNAPage() {
   const [file, setFile] = useState<File | null>(null);
