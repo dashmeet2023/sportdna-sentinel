@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GuardianAgent } from "@/components/GuardianAgent";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check } from "lucide-react";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check, Trash2, Database } from "lucide-react";
 
 export const Route = createFileRoute("/dna")({
   head: () => ({
