@@ -176,6 +176,7 @@ function DNAPage() {
     const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : 6;
     const stamps = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95].map((p) => p * dur);
     const out: FrameData[] = [];
+    const embs: Float32Array[] = [];
 
     for (const t of stamps) {
       await new Promise<void>((res) => {
@@ -185,6 +186,7 @@ function DNAPage() {
       });
       try {
         ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+        embs.push(frameEmbedding(canvas)); // real per-frame perceptual embedding
         out.push({ url: canvas.toDataURL("image/jpeg", 0.7), t });
         setFrames([...out]);
         setProgress(Math.round((out.length / stamps.length) * 35));
@@ -195,14 +197,16 @@ function DNAPage() {
     }
     URL.revokeObjectURL(url);
 
-    // Embedding
+    // Embedding — average per-frame vectors into a 256-dim clip embedding
     setStage("embed");
+    const clipEmb = averageEmbeddings(embs);
+    setEmbedding(clipEmb);
     for (let i = 35; i <= 60; i += 4) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
 
-    // DNA hash
+    // DNA hash — derive from embedding so the hash IS the perceptual fingerprint
     setStage("dna");
-    const buf = await f.slice(0, 64 * 1024).arrayBuffer();
-    const digest = await crypto.subtle.digest("SHA-256", buf);
+    const embBytes = new Uint8Array(clipEmb.buffer.slice(0));
+    const digest = await crypto.subtle.digest("SHA-256", embBytes);
     const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
     setHash(hex.slice(0, 48));
     setMediaId("MID-" + hex.slice(0, 6).toUpperCase());
