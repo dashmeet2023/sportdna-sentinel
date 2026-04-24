@@ -24,6 +24,7 @@ interface RegisteredAsset {
   fileName: string;
   sizeBytes: number;
   dnaHash: string;
+  embedding?: string; // base64 packed Float32Array
   txHash: string;
   network: string;
   registeredAt: string;
