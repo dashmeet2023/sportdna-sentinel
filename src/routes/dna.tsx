@@ -470,3 +470,58 @@ function FingerprintViz({ active }: { active: boolean }) {
     </div>
   );
 }
+
+function RegisteredAssetsTable({ assets, onRemove, onClear }: { assets: RegisteredAsset[]; onRemove: (h: string) => void; onClear: () => void }) {
+  return (
+    <div className="glass rounded-xl p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Database className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-semibold">REGISTERED ASSETS</h3>
+          <span className="text-[10px] mono text-muted-foreground">· persisted locally · {assets.length}</span>
+        </div>
+        {assets.length > 0 && (
+          <button onClick={onClear} className="text-[11px] mono px-2 py-1 rounded-md border border-border hover:border-destructive/60 hover:text-destructive">
+            Clear all
+          </button>
+        )}
+      </div>
+      {assets.length === 0 ? (
+        <div className="text-xs text-muted-foreground py-8 text-center border border-dashed border-border rounded-md">
+          No registered assets yet. Generate a fingerprint and click <span className="text-primary">Register on Chain</span>.
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-[10px] mono text-muted-foreground border-b border-border">
+                <th className="text-left py-2 pr-3">MEDIA ID</th>
+                <th className="text-left py-2 pr-3">FILE</th>
+                <th className="text-left py-2 pr-3">DNA HASH</th>
+                <th className="text-left py-2 pr-3">TX</th>
+                <th className="text-left py-2 pr-3">REGISTERED</th>
+                <th className="py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.map((a) => (
+                <tr key={a.dnaHash} className="border-b border-border/50 hover:bg-white/5">
+                  <td className="py-2 pr-3 mono text-primary">{a.mediaId}</td>
+                  <td className="py-2 pr-3 truncate max-w-[180px]">{a.fileName}</td>
+                  <td className="py-2 pr-3 mono text-muted-foreground">{a.dnaHash.slice(0, 16)}…</td>
+                  <td className="py-2 pr-3 mono text-muted-foreground">{a.txHash.slice(0, 12)}…</td>
+                  <td className="py-2 pr-3 mono text-muted-foreground">{new Date(a.registeredAt).toLocaleString()}</td>
+                  <td className="py-2 text-right">
+                    <button onClick={() => onRemove(a.dnaHash)} className="text-muted-foreground hover:text-destructive p-1" aria-label="Remove">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
