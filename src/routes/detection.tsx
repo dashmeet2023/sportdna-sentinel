@@ -166,7 +166,17 @@ function DetectionPage() {
           })}
         </div>
 
-        <GuardianAgent message="Detection cluster suggests coordinated re-uploading by a single network. 4 of 6 accounts share device fingerprints. Recommend bulk takedown + register accounts as repeat infringers." />
+        <GuardianAgent
+          live
+          scenario="alert_feed"
+          payload={{
+            totalDetections: DETECTIONS.length,
+            byPlatform: DETECTIONS.reduce((acc, d) => { acc[d.platform] = (acc[d.platform] ?? 0) + 1; return acc; }, {} as Record<string, number>),
+            highestConfidence: Math.max(...DETECTIONS.map((d) => d.confidence)),
+            samples: DETECTIONS.slice(0, 4).map((d) => ({ platform: d.platform, account: d.account, confidence: d.confidence, views: d.views })),
+          }}
+          message="Detection cluster suggests coordinated re-uploading by a single network."
+        />
       </div>
 
       <Dialog open={!!evidenceFor} onOpenChange={(o) => !o && setEvidenceFor(null)}>
