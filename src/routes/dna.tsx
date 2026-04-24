@@ -241,8 +241,20 @@ function DNAPage() {
                   onClick={(e) => { e.stopPropagation(); loadDemoSample(); }}
                   className="mt-5 inline-flex items-center gap-1.5 text-[11px] mono px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Try demo sample
+                  <Sparkles className="w-3.5 h-3.5" /> Try sample football clip
                 </button>
+                <div className="mt-5 mx-auto max-w-sm">
+                  <div className="text-[10px] mono text-muted-foreground mb-1.5 text-left">SAMPLE PREVIEW</div>
+                  <video
+                    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                    className="w-full rounded-md border border-border bg-black"
+                    controls
+                    muted
+                    playsInline
+                    preload="metadata"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
