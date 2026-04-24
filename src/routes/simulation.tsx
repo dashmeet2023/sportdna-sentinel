@@ -63,7 +63,8 @@ function SimPage() {
   const [traffic, setTraffic] = useState<number[]>(() => Array.from({ length: 48 }, () => 20 + Math.random() * 60));
   const [packets, setPackets] = useState<Packet[]>([]);
   const [latencies, setLatencies] = useState<Record<string, number>>({});
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => { setNow(new Date()); }, []);
   const packetId = useRef(0);
 
   // Pipeline ticker
