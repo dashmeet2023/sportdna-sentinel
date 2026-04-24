@@ -372,9 +372,25 @@ function DNAPage() {
           </div>
         </div>
 
+        <SimilarityPanel embedding={embedding} registry={registry} currentHash={hash} />
+
         <RegisteredAssetsTable assets={registry} onRemove={removeAsset} onClear={clearRegistry} />
 
-        <GuardianAgent message="Frame-level embeddings generated using a 768-dim vision encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions." />
+        <GuardianAgent
+          live={stage === "done"}
+          scenario="dna_analysis"
+          payload={{
+            mediaId,
+            dnaHash: hash,
+            framesAnalyzed: frames.length,
+            embeddingDim: embedding?.length ?? 0,
+            registrySize: registry.length,
+            topMatches: topMatches(embedding, registry, hash, 3),
+            registered,
+            txHash: txHash || null,
+          }}
+          message="Frame-level embeddings generated using a 256-dim perceptual encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions."
+        />
       </div>
     </AppShell>
   );
