@@ -94,6 +94,7 @@ function DNAPage() {
       fileName: file?.name ?? "unknown",
       sizeBytes: file?.size ?? 0,
       dnaHash: hash,
+      embedding: embedding ? packEmbedding(embedding) : undefined,
       txHash: tx,
       network: "sportdna-testnet",
       registeredAt: new Date().toISOString(),
