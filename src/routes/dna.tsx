@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GuardianAgent } from "@/components/GuardianAgent";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check } from "lucide-react";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check, Trash2, Database } from "lucide-react";
 
 export const Route = createFileRoute("/dna")({
   head: () => ({
@@ -18,6 +18,23 @@ export const Route = createFileRoute("/dna")({
 });
 
 interface FrameData { url: string; t: number; }
+interface RegisteredAsset {
+  mediaId: string;
+  fileName: string;
+  sizeBytes: number;
+  dnaHash: string;
+  txHash: string;
+  network: string;
+  registeredAt: string;
+}
+const REGISTRY_KEY = "sportdna.registry.v1";
+function loadRegistry(): RegisteredAsset[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(REGISTRY_KEY) || "[]"); } catch { return []; }
+}
+function saveRegistry(list: RegisteredAsset[]) {
+  try { localStorage.setItem(REGISTRY_KEY, JSON.stringify(list)); } catch {}
+}
 
 function DNAPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -30,8 +47,11 @@ function DNAPage() {
   const [registering, setRegistering] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [copied, setCopied] = useState(false);
+  const [registry, setRegistry] = useState<RegisteredAsset[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => { setRegistry(loadRegistry()); }, []);
 
   function reset() {
     setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
@@ -97,7 +117,36 @@ function DNAPage() {
     setTxHash(tx);
     setRegistered(true);
     setRegistering(false);
+    const asset: RegisteredAsset = {
+      mediaId,
+      fileName: file?.name ?? "unknown",
+      sizeBytes: file?.size ?? 0,
+      dnaHash: hash,
+      txHash: tx,
+      network: "sportdna-testnet",
+      registeredAt: new Date().toISOString(),
+    };
+    setRegistry((prev) => {
+      const next = [asset, ...prev.filter((a) => a.dnaHash !== hash)].slice(0, 50);
+      saveRegistry(next);
+      return next;
+    });
     toast.success("Registered on chain", { id: "chain", description: `Tx ${tx.slice(0, 14)}…` });
+  }
+
+  function removeAsset(dnaHash: string) {
+    setRegistry((prev) => {
+      const next = prev.filter((a) => a.dnaHash !== dnaHash);
+      saveRegistry(next);
+      return next;
+    });
+    toast("Asset removed from registry");
+  }
+
+  function clearRegistry() {
+    setRegistry([]);
+    saveRegistry([]);
+    toast("Registry cleared");
   }
 
   function downloadCertificate() {
@@ -334,6 +383,8 @@ function DNAPage() {
           </div>
         </div>
 
+        <RegisteredAssetsTable assets={registry} onRemove={removeAsset} onClear={clearRegistry} />
+
         <GuardianAgent message="Frame-level embeddings generated using a 768-dim vision encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions." />
       </div>
     </AppShell>
@@ -416,6 +467,61 @@ function FingerprintViz({ active }: { active: boolean }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function RegisteredAssetsTable({ assets, onRemove, onClear }: { assets: RegisteredAsset[]; onRemove: (h: string) => void; onClear: () => void }) {
+  return (
+    <div className="glass rounded-xl p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Database className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-semibold">REGISTERED ASSETS</h3>
+          <span className="text-[10px] mono text-muted-foreground">· persisted locally · {assets.length}</span>
+        </div>
+        {assets.length > 0 && (
+          <button onClick={onClear} className="text-[11px] mono px-2 py-1 rounded-md border border-border hover:border-destructive/60 hover:text-destructive">
+            Clear all
+          </button>
+        )}
+      </div>
+      {assets.length === 0 ? (
+        <div className="text-xs text-muted-foreground py-8 text-center border border-dashed border-border rounded-md">
+          No registered assets yet. Generate a fingerprint and click <span className="text-primary">Register on Chain</span>.
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-[10px] mono text-muted-foreground border-b border-border">
+                <th className="text-left py-2 pr-3">MEDIA ID</th>
+                <th className="text-left py-2 pr-3">FILE</th>
+                <th className="text-left py-2 pr-3">DNA HASH</th>
+                <th className="text-left py-2 pr-3">TX</th>
+                <th className="text-left py-2 pr-3">REGISTERED</th>
+                <th className="py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.map((a) => (
+                <tr key={a.dnaHash} className="border-b border-border/50 hover:bg-white/5">
+                  <td className="py-2 pr-3 mono text-primary">{a.mediaId}</td>
+                  <td className="py-2 pr-3 truncate max-w-[180px]">{a.fileName}</td>
+                  <td className="py-2 pr-3 mono text-muted-foreground">{a.dnaHash.slice(0, 16)}…</td>
+                  <td className="py-2 pr-3 mono text-muted-foreground">{a.txHash.slice(0, 12)}…</td>
+                  <td className="py-2 pr-3 mono text-muted-foreground">{new Date(a.registeredAt).toLocaleString()}</td>
+                  <td className="py-2 text-right">
+                    <button onClick={() => onRemove(a.dnaHash)} className="text-muted-foreground hover:text-destructive p-1" aria-label="Remove">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
