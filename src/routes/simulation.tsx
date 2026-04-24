@@ -60,7 +60,7 @@ function SimPage() {
   const [scanned, setScanned] = useState(89432);
   const [blocked, setBlocked] = useState(312);
   const [bandwidth, setBandwidth] = useState(184);
-  const [traffic, setTraffic] = useState<number[]>(() => Array.from({ length: 48 }, () => 20 + Math.random() * 60));
+  const [traffic, setTraffic] = useState<number[]>(() => Array.from({ length: 48 }, () => 40));
   const [packets, setPackets] = useState<Packet[]>([]);
   const [latencies, setLatencies] = useState<Record<string, number>>({});
   const [now, setNow] = useState<Date | null>(null);
