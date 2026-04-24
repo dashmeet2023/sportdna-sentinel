@@ -530,3 +530,79 @@ function RegisteredAssetsTable({ assets, onRemove, onClear }: { assets: Register
     </div>
   );
 }
+
+function topMatches(emb: Float32Array | null, registry: RegisteredAsset[], excludeHash: string, k: number) {
+  if (!emb || emb.length === 0) return [];
+  const scored = registry
+    .filter((a) => a.embedding && a.dnaHash !== excludeHash)
+    .map((a) => ({
+      mediaId: a.mediaId,
+      fileName: a.fileName,
+      dnaHash: a.dnaHash,
+      score: cosine(emb, unpackEmbedding(a.embedding!)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, k);
+  return scored.map((s) => ({ ...s, scorePct: Math.round(s.score * 100) }));
+}
+
+function SimilarityPanel({
+  embedding,
+  registry,
+  currentHash,
+}: {
+  embedding: Float32Array | null;
+  registry: RegisteredAsset[];
+  currentHash: string;
+}) {
+  if (!embedding) return null;
+  const matches = topMatches(embedding, registry, currentHash, 5);
+  return (
+    <div className="glass rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Target className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-semibold">SIMILARITY MATCHING</h3>
+        <span className="text-[10px] mono text-muted-foreground">
+          · cosine vs registry · {registry.filter((a) => a.embedding).length} embedded assets
+        </span>
+      </div>
+      {matches.length === 0 ? (
+        <div className="text-xs text-muted-foreground py-6 text-center border border-dashed border-border rounded-md">
+          No comparable assets in registry yet. Register more clips to enable cross-matching.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {matches.map((m) => {
+            const tone =
+              m.scorePct >= 90 ? "text-destructive"
+              : m.scorePct >= 70 ? "text-primary"
+              : "text-muted-foreground";
+            const verdict =
+              m.scorePct >= 90 ? "DUPLICATE / CLOSE EDIT"
+              : m.scorePct >= 70 ? "LIKELY DERIVATIVE"
+              : m.scorePct >= 40 ? "WEAK MATCH"
+              : "DISTINCT";
+            return (
+              <div key={m.dnaHash} className="flex items-center gap-3 px-3 py-2 rounded-md border border-border bg-white/5">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold truncate">{m.mediaId} · {m.fileName}</div>
+                  <div className="text-[10px] mono text-muted-foreground truncate">{m.dnaHash.slice(0, 24)}…</div>
+                </div>
+                <div className="w-40">
+                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div
+                      className={`h-full ${m.scorePct >= 90 ? "bg-destructive" : m.scorePct >= 70 ? "gradient-amber" : "bg-muted-foreground/50"}`}
+                      style={{ width: `${Math.max(2, m.scorePct)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className={`text-xs mono w-12 text-right ${tone}`}>{m.scorePct}%</div>
+                <div className={`text-[10px] mono w-44 text-right ${tone}`}>{verdict}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
