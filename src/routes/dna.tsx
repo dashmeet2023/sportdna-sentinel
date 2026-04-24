@@ -383,6 +383,8 @@ function DNAPage() {
           </div>
         </div>
 
+        <RegisteredAssetsTable assets={registry} onRemove={removeAsset} onClear={clearRegistry} />
+
         <GuardianAgent message="Frame-level embeddings generated using a 768-dim vision encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions." />
       </div>
     </AppShell>
