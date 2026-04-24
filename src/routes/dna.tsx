@@ -3,7 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { GuardianAgent } from "@/components/GuardianAgent";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check, Trash2, Database } from "lucide-react";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check, Trash2, Database, Target } from "lucide-react";
+import { frameEmbedding, averageEmbeddings, cosine, packEmbedding, unpackEmbedding } from "@/lib/perceptualHash";
 
 export const Route = createFileRoute("/dna")({
   head: () => ({
@@ -23,6 +24,7 @@ interface RegisteredAsset {
   fileName: string;
   sizeBytes: number;
   dnaHash: string;
+  embedding?: string; // base64 packed Float32Array
   txHash: string;
   network: string;
   registeredAt: string;
@@ -48,6 +50,7 @@ function DNAPage() {
   const [txHash, setTxHash] = useState("");
   const [copied, setCopied] = useState(false);
   const [registry, setRegistry] = useState<RegisteredAsset[]>([]);
+  const [embedding, setEmbedding] = useState<Float32Array | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -56,6 +59,7 @@ function DNAPage() {
   function reset() {
     setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
     setRegistered(false); setRegistering(false); setTxHash(""); setCopied(false);
+    setEmbedding(null);
   }
 
   async function loadDemoSample() {
@@ -90,6 +94,7 @@ function DNAPage() {
       fileName: file?.name ?? "unknown",
       sizeBytes: file?.size ?? 0,
       dnaHash: hash,
+      embedding: embedding ? packEmbedding(embedding) : undefined,
       txHash: tx,
       network: "sportdna-testnet",
       registeredAt: new Date().toISOString(),
@@ -172,6 +177,7 @@ function DNAPage() {
     const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : 6;
     const stamps = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95].map((p) => p * dur);
     const out: FrameData[] = [];
+    const embs: Float32Array[] = [];
 
     for (const t of stamps) {
       await new Promise<void>((res) => {
@@ -181,6 +187,7 @@ function DNAPage() {
       });
       try {
         ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+        embs.push(frameEmbedding(canvas)); // real per-frame perceptual embedding
         out.push({ url: canvas.toDataURL("image/jpeg", 0.7), t });
         setFrames([...out]);
         setProgress(Math.round((out.length / stamps.length) * 35));
@@ -191,14 +198,16 @@ function DNAPage() {
     }
     URL.revokeObjectURL(url);
 
-    // Embedding
+    // Embedding — average per-frame vectors into a 256-dim clip embedding
     setStage("embed");
+    const clipEmb = averageEmbeddings(embs);
+    setEmbedding(clipEmb);
     for (let i = 35; i <= 60; i += 4) { await new Promise((r) => setTimeout(r, 90)); setProgress(i); }
 
-    // DNA hash
+    // DNA hash — derive from embedding so the hash IS the perceptual fingerprint
     setStage("dna");
-    const buf = await f.slice(0, 64 * 1024).arrayBuffer();
-    const digest = await crypto.subtle.digest("SHA-256", buf);
+    const embBytes = new Uint8Array(clipEmb.buffer as ArrayBuffer);
+    const digest = await crypto.subtle.digest("SHA-256", embBytes.slice());
     const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
     setHash(hex.slice(0, 48));
     setMediaId("MID-" + hex.slice(0, 6).toUpperCase());
@@ -363,9 +372,25 @@ function DNAPage() {
           </div>
         </div>
 
+        <SimilarityPanel embedding={embedding} registry={registry} currentHash={hash} />
+
         <RegisteredAssetsTable assets={registry} onRemove={removeAsset} onClear={clearRegistry} />
 
-        <GuardianAgent message="Frame-level embeddings generated using a 768-dim vision encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions." />
+        <GuardianAgent
+          live={stage === "done"}
+          scenario="dna_analysis"
+          payload={{
+            mediaId,
+            dnaHash: hash,
+            framesAnalyzed: frames.length,
+            embeddingDim: embedding?.length ?? 0,
+            registrySize: registry.length,
+            topMatches: topMatches(embedding, registry, hash, 3),
+            registered,
+            txHash: txHash || null,
+          }}
+          message="Frame-level embeddings generated using a 256-dim perceptual encoder. Perceptual hash robust to crop, rotation, color shift, and re-encoding. Invisible watermark survives screen-recording within 91% of test conditions."
+        />
       </div>
     </AppShell>
   );
@@ -500,6 +525,82 @@ function RegisteredAssetsTable({ assets, onRemove, onClear }: { assets: Register
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function topMatches(emb: Float32Array | null, registry: RegisteredAsset[], excludeHash: string, k: number) {
+  if (!emb || emb.length === 0) return [];
+  const scored = registry
+    .filter((a) => a.embedding && a.dnaHash !== excludeHash)
+    .map((a) => ({
+      mediaId: a.mediaId,
+      fileName: a.fileName,
+      dnaHash: a.dnaHash,
+      score: cosine(emb, unpackEmbedding(a.embedding!)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, k);
+  return scored.map((s) => ({ ...s, scorePct: Math.round(s.score * 100) }));
+}
+
+function SimilarityPanel({
+  embedding,
+  registry,
+  currentHash,
+}: {
+  embedding: Float32Array | null;
+  registry: RegisteredAsset[];
+  currentHash: string;
+}) {
+  if (!embedding) return null;
+  const matches = topMatches(embedding, registry, currentHash, 5);
+  return (
+    <div className="glass rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Target className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-semibold">SIMILARITY MATCHING</h3>
+        <span className="text-[10px] mono text-muted-foreground">
+          · cosine vs registry · {registry.filter((a) => a.embedding).length} embedded assets
+        </span>
+      </div>
+      {matches.length === 0 ? (
+        <div className="text-xs text-muted-foreground py-6 text-center border border-dashed border-border rounded-md">
+          No comparable assets in registry yet. Register more clips to enable cross-matching.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {matches.map((m) => {
+            const tone =
+              m.scorePct >= 90 ? "text-destructive"
+              : m.scorePct >= 70 ? "text-primary"
+              : "text-muted-foreground";
+            const verdict =
+              m.scorePct >= 90 ? "DUPLICATE / CLOSE EDIT"
+              : m.scorePct >= 70 ? "LIKELY DERIVATIVE"
+              : m.scorePct >= 40 ? "WEAK MATCH"
+              : "DISTINCT";
+            return (
+              <div key={m.dnaHash} className="flex items-center gap-3 px-3 py-2 rounded-md border border-border bg-white/5">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold truncate">{m.mediaId} · {m.fileName}</div>
+                  <div className="text-[10px] mono text-muted-foreground truncate">{m.dnaHash.slice(0, 24)}…</div>
+                </div>
+                <div className="w-40">
+                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div
+                      className={`h-full ${m.scorePct >= 90 ? "bg-destructive" : m.scorePct >= 70 ? "gradient-amber" : "bg-muted-foreground/50"}`}
+                      style={{ width: `${Math.max(2, m.scorePct)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className={`text-xs mono w-12 text-right ${tone}`}>{m.scorePct}%</div>
+                <div className={`text-[10px] mono w-44 text-right ${tone}`}>{verdict}</div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

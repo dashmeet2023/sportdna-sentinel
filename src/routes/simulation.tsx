@@ -312,7 +312,19 @@ function SimPage() {
           </div>
         </div>
 
-        <GuardianAgent message="Simulation mode active. Pipeline detected the pirated upload in 4.2s end-to-end. In production, takedown notices would be auto-dispatched to platform legal endpoints with attached DNA evidence and ownership certificate." />
+        <GuardianAgent
+          live={step >= STEPS.length - 1}
+          scenario="alert_feed"
+          payload={{
+            pipelineStage: STEPS[Math.max(0, Math.min(step, STEPS.length - 1))]?.label ?? "idle",
+            stepIndex: step,
+            totalSteps: STEPS.length,
+            recentAlerts: log.slice(0, 5).map((l) => l.m),
+            stats: { threats, scanned, blocked, bandwidthMbps: Math.round(bandwidth) },
+            crawlerLatencyMs: latencies,
+          }}
+          message="Simulation mode active. Pipeline detected the pirated upload in 4.2s end-to-end."
+        />
       </div>
     </AppShell>
   );
