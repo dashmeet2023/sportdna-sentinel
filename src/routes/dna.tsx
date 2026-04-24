@@ -3,7 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { GuardianAgent } from "@/components/GuardianAgent";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check, Trash2, Database } from "lucide-react";
+import { Upload, Fingerprint, Shield, FileCheck, Loader2, Download, Sparkles, Copy, Check, Trash2, Database, Target } from "lucide-react";
+import { frameEmbedding, averageEmbeddings, cosine, packEmbedding, unpackEmbedding } from "@/lib/perceptualHash";
 
 export const Route = createFileRoute("/dna")({
   head: () => ({
