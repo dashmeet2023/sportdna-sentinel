@@ -50,6 +50,7 @@ function DNAPage() {
   const [txHash, setTxHash] = useState("");
   const [copied, setCopied] = useState(false);
   const [registry, setRegistry] = useState<RegisteredAsset[]>([]);
+  const [embedding, setEmbedding] = useState<Float32Array | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -58,6 +59,7 @@ function DNAPage() {
   function reset() {
     setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
     setRegistered(false); setRegistering(false); setTxHash(""); setCopied(false);
+    setEmbedding(null);
   }
 
   async function loadDemoSample() {
