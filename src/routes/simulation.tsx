@@ -63,7 +63,8 @@ function SimPage() {
   const [traffic, setTraffic] = useState<number[]>(() => Array.from({ length: 48 }, () => 20 + Math.random() * 60));
   const [packets, setPackets] = useState<Packet[]>([]);
   const [latencies, setLatencies] = useState<Record<string, number>>({});
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => { setNow(new Date()); }, []);
   const packetId = useRef(0);
 
   // Pipeline ticker
@@ -139,7 +140,7 @@ function SimPage() {
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 text-[10px] mono text-muted-foreground border border-border rounded-md px-3 py-2 bg-white/5">
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-              SOC · {now.toUTCString().slice(17, 25)} UTC
+              SOC · {now ? now.toUTCString().slice(17, 25) : "--:--:--"} UTC
             </div>
             <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
               <span className="text-muted-foreground mono">SIMULATION</span>
