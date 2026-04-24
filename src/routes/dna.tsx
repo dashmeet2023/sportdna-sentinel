@@ -117,7 +117,36 @@ function DNAPage() {
     setTxHash(tx);
     setRegistered(true);
     setRegistering(false);
+    const asset: RegisteredAsset = {
+      mediaId,
+      fileName: file?.name ?? "unknown",
+      sizeBytes: file?.size ?? 0,
+      dnaHash: hash,
+      txHash: tx,
+      network: "sportdna-testnet",
+      registeredAt: new Date().toISOString(),
+    };
+    setRegistry((prev) => {
+      const next = [asset, ...prev.filter((a) => a.dnaHash !== hash)].slice(0, 50);
+      saveRegistry(next);
+      return next;
+    });
     toast.success("Registered on chain", { id: "chain", description: `Tx ${tx.slice(0, 14)}…` });
+  }
+
+  function removeAsset(dnaHash: string) {
+    setRegistry((prev) => {
+      const next = prev.filter((a) => a.dnaHash !== dnaHash);
+      saveRegistry(next);
+      return next;
+    });
+    toast("Asset removed from registry");
+  }
+
+  function clearRegistry() {
+    setRegistry([]);
+    saveRegistry([]);
+    toast("Registry cleared");
   }
 
   function downloadCertificate() {
