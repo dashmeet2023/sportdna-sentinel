@@ -47,8 +47,11 @@ function DNAPage() {
   const [registering, setRegistering] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [copied, setCopied] = useState(false);
+  const [registry, setRegistry] = useState<RegisteredAsset[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => { setRegistry(loadRegistry()); }, []);
 
   function reset() {
     setFile(null); setFrames([]); setStage("idle"); setProgress(0); setHash(""); setMediaId("");
