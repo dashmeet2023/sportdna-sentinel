@@ -267,15 +267,45 @@ function DNAPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <video ref={videoRef} src={URL.createObjectURL(file)} className="w-32 h-20 rounded-md border border-border bg-black object-cover" controls={false} muted />
-                    <div>
-                      <div className="text-sm font-semibold truncate max-w-xs">{file.name}</div>
-                      <div className="text-[10px] mono text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                    </div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate">{file.name}</div>
+                    <div className="text-[10px] mono text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB · {file.type || "video"}</div>
                   </div>
-                  <button onClick={reset} className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-primary/50">Reset</button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => inputRef.current?.click()}
+                      className="text-xs px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10 inline-flex items-center gap-1.5"
+                    >
+                      <Upload className="w-3 h-3" /> Import another
+                    </button>
+                    <button onClick={reset} className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-primary/50">Reset</button>
+                    <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                  </div>
+                </div>
+
+                {/* Live video player — front and center for the demo */}
+                <div className="relative rounded-lg overflow-hidden border border-primary/30 bg-black aspect-video glow-amber">
+                  <video
+                    ref={videoRef}
+                    src={URL.createObjectURL(file)}
+                    className="w-full h-full object-contain"
+                    controls
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                    <span className="text-[10px] mono text-white tracking-wider">LIVE · ANALYZING</span>
+                  </div>
+                  <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm text-[10px] mono text-primary">
+                    {stageLabel(stage)}
+                  </div>
+                  {stage !== "done" && (
+                    <div className="absolute inset-0 pointer-events-none scanline opacity-40" />
+                  )}
                 </div>
 
                 <div>
