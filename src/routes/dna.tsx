@@ -230,28 +230,54 @@ function DNAPage() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Single hidden file input — shared by all upload triggers */}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="video/*"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+              e.target.value = ""; // allow re-selecting the same file
+            }}
+          />
+
           {/* Upload */}
           <div className="glass rounded-xl p-5 lg:col-span-2">
             {!file ? (
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
-                onClick={() => inputRef.current?.click()}
-                className="cursor-pointer rounded-lg border-2 border-dashed border-border hover:border-primary/50 transition-colors p-12 text-center"
+                className="rounded-lg border-2 border-dashed border-border hover:border-primary/50 transition-colors p-12 text-center"
               >
-                <div className="w-16 h-16 mx-auto rounded-full grid place-items-center gradient-amber glow-amber mb-4">
-                  <Upload className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <div className="text-sm font-semibold">Drop a sports video to fingerprint</div>
-                <div className="text-xs text-muted-foreground mt-1">MP4 / MOV / WebM · processed locally in your browser</div>
-                <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); loadDemoSample(); }}
-                  className="mt-5 inline-flex items-center gap-1.5 text-[11px] mono px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+                  onClick={() => inputRef.current?.click()}
+                  className="w-full cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Try sample football clip
+                  <div className="w-16 h-16 mx-auto rounded-full grid place-items-center gradient-amber glow-amber mb-4">
+                    <Upload className="w-7 h-7 text-primary-foreground" />
+                  </div>
+                  <div className="text-sm font-semibold">Click or drop a sports video to fingerprint</div>
+                  <div className="text-xs text-muted-foreground mt-1">MP4 / MOV / WebM · processed locally in your browser</div>
                 </button>
+                <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => inputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 text-[11px] mono px-3 py-1.5 rounded-md gradient-amber text-primary-foreground font-semibold glow-amber"
+                  >
+                    <Upload className="w-3.5 h-3.5" /> Choose file
+                  </button>
+                  <button
+                    type="button"
+                    onClick={loadDemoSample}
+                    className="inline-flex items-center gap-1.5 text-[11px] mono px-3 py-1.5 rounded-md border border-primary/40 text-primary hover:bg-primary/10"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Try sample football clip
+                  </button>
+                </div>
                 <div className="mt-5 mx-auto max-w-sm">
                   <div className="text-[10px] mono text-muted-foreground mb-1.5 text-left">SAMPLE PREVIEW</div>
                   <video
@@ -261,7 +287,6 @@ function DNAPage() {
                     muted
                     playsInline
                     preload="metadata"
-                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </div>
@@ -280,7 +305,6 @@ function DNAPage() {
                       <Upload className="w-3 h-3" /> Import another
                     </button>
                     <button onClick={reset} className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-primary/50">Reset</button>
-                    <input ref={inputRef} type="file" accept="video/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
                   </div>
                 </div>
 
