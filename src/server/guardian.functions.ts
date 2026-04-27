@@ -48,7 +48,7 @@ Never hallucinate IDs or numbers — only use values from the provided JSON cont
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: data.model ?? DEFAULT_GUARDIAN_MODEL,
           messages: [
             { role: "system", content: system },
             { role: "user", content: user },
