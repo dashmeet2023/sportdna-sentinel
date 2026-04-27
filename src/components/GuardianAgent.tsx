@@ -59,10 +59,23 @@ export function GuardianAgent({ message, scenario, payload, live = false }: Prop
         <div>
           <div className="text-sm font-semibold">SportDNA Guardian</div>
           <div className="text-[10px] mono text-muted-foreground">
-            {live ? "GEMINI · LOVABLE AI" : "AI ANALYST"} · {loading ? "ANALYZING" : errored ? "DEGRADED" : "ONLINE"}
+            {live ? `${model.split("/")[1].toUpperCase()} · LOVABLE AI` : "AI ANALYST"} · {loading ? "ANALYZING" : errored ? "DEGRADED" : "ONLINE"}
           </div>
         </div>
         <span className="ml-auto flex items-center gap-2">
+          {live && (
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value as GuardianModel)}
+              disabled={loading}
+              className="text-[10px] mono bg-background/60 border border-border rounded px-1.5 py-0.5 text-foreground/80 hover:border-primary/50 focus:outline-none focus:border-primary disabled:opacity-40"
+              title="Switch Gemini model"
+            >
+              {GUARDIAN_MODELS.map((m) => (
+                <option key={m} value={m}>{m.replace("google/", "")}</option>
+              ))}
+            </select>
+          )}
           {live && (
             <button
               onClick={fetchLive}
