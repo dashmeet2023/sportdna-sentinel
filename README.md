@@ -118,7 +118,3 @@ npm run dev
 ## 📜 License  
 MIT  
 
----
-
-## 👥 Team  
-Team Name | Institution | Date  
