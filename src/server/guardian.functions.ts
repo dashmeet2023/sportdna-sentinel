@@ -1,8 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 
+export const GUARDIAN_MODELS = [
+  "google/gemini-3.1-pro-preview",
+  "google/gemini-3-flash-preview",
+  "google/gemini-2.5-pro",
+  "google/gemini-2.5-flash",
+] as const;
+export type GuardianModel = (typeof GUARDIAN_MODELS)[number];
+export const DEFAULT_GUARDIAN_MODEL: GuardianModel = "google/gemini-3.1-pro-preview";
+
 interface GuardianContext {
   scenario: "dna_analysis" | "alert_feed" | "takedown_summary" | "propagation";
   payload: Record<string, unknown>;
+  model?: GuardianModel;
 }
 
 export const askGuardian = createServerFn({ method: "POST" })
@@ -10,6 +20,9 @@ export const askGuardian = createServerFn({ method: "POST" })
     if (!input || typeof input !== "object") throw new Error("Invalid payload");
     if (!["dna_analysis", "alert_feed", "takedown_summary", "propagation"].includes(input.scenario)) {
       throw new Error("Invalid scenario");
+    }
+    if (input.model && !GUARDIAN_MODELS.includes(input.model)) {
+      throw new Error("Invalid model");
     }
     return input;
   })
