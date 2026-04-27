@@ -1,7 +1,7 @@
 import { Sparkles, RefreshCw, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { askGuardian } from "@/server/guardian.functions";
+import { askGuardian, GUARDIAN_MODELS, DEFAULT_GUARDIAN_MODEL, type GuardianModel } from "@/server/guardian.functions";
 
 interface Props {
   message?: string;
@@ -18,15 +18,16 @@ export function GuardianAgent({ message, scenario, payload, live = false }: Prop
   const [text, setText] = useState<string>(message ?? FALLBACK);
   const [loading, setLoading] = useState(false);
   const [errored, setErrored] = useState(false);
+  const [model, setModel] = useState<GuardianModel>(DEFAULT_GUARDIAN_MODEL);
 
-  // Stable key to refetch when payload meaningfully changes
-  const key = live && scenario ? scenario + ":" + JSON.stringify(payload ?? {}) : null;
+  // Stable key to refetch when payload or model meaningfully changes
+  const key = live && scenario ? scenario + ":" + model + ":" + JSON.stringify(payload ?? {}) : null;
 
   async function fetchLive() {
     if (!live || !scenario) return;
     setLoading(true); setErrored(false);
     try {
-      const res = await ask({ data: { scenario, payload: payload ?? {} } });
+      const res = await ask({ data: { scenario, payload: payload ?? {}, model } });
       setText(res.text);
       setErrored(!!res.error);
     } catch (e) {
@@ -58,10 +59,23 @@ export function GuardianAgent({ message, scenario, payload, live = false }: Prop
         <div>
           <div className="text-sm font-semibold">SportDNA Guardian</div>
           <div className="text-[10px] mono text-muted-foreground">
-            {live ? "GEMINI · LOVABLE AI" : "AI ANALYST"} · {loading ? "ANALYZING" : errored ? "DEGRADED" : "ONLINE"}
+            {live ? `${model.split("/")[1].toUpperCase()} · LOVABLE AI` : "AI ANALYST"} · {loading ? "ANALYZING" : errored ? "DEGRADED" : "ONLINE"}
           </div>
         </div>
         <span className="ml-auto flex items-center gap-2">
+          {live && (
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value as GuardianModel)}
+              disabled={loading}
+              className="text-[10px] mono bg-background/60 border border-border rounded px-1.5 py-0.5 text-foreground/80 hover:border-primary/50 focus:outline-none focus:border-primary disabled:opacity-40"
+              title="Switch Gemini model"
+            >
+              {GUARDIAN_MODELS.map((m) => (
+                <option key={m} value={m}>{m.replace("google/", "")}</option>
+              ))}
+            </select>
+          )}
           {live && (
             <button
               onClick={fetchLive}
