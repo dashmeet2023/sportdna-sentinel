@@ -18,15 +18,16 @@ export function GuardianAgent({ message, scenario, payload, live = false }: Prop
   const [text, setText] = useState<string>(message ?? FALLBACK);
   const [loading, setLoading] = useState(false);
   const [errored, setErrored] = useState(false);
+  const [model, setModel] = useState<GuardianModel>(DEFAULT_GUARDIAN_MODEL);
 
-  // Stable key to refetch when payload meaningfully changes
-  const key = live && scenario ? scenario + ":" + JSON.stringify(payload ?? {}) : null;
+  // Stable key to refetch when payload or model meaningfully changes
+  const key = live && scenario ? scenario + ":" + model + ":" + JSON.stringify(payload ?? {}) : null;
 
   async function fetchLive() {
     if (!live || !scenario) return;
     setLoading(true); setErrored(false);
     try {
-      const res = await ask({ data: { scenario, payload: payload ?? {} } });
+      const res = await ask({ data: { scenario, payload: payload ?? {}, model } });
       setText(res.text);
       setErrored(!!res.error);
     } catch (e) {
