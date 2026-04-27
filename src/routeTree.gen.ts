@@ -16,6 +16,7 @@ import { Route as MapRouteImport } from './routes/map'
 import { Route as DnaRouteImport } from './routes/dna'
 import { Route as DetectionRouteImport } from './routes/detection'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiGuardianChatRouteImport } from './routes/api/guardian-chat'
 
 const TimelineRoute = TimelineRouteImport.update({
   id: '/timeline',
@@ -52,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGuardianChatRoute = ApiGuardianChatRouteImport.update({
+  id: '/api/guardian-chat',
+  path: '/api/guardian-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/simulation': typeof SimulationRoute
   '/takedown': typeof TakedownRoute
   '/timeline': typeof TimelineRoute
+  '/api/guardian-chat': typeof ApiGuardianChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/simulation': typeof SimulationRoute
   '/takedown': typeof TakedownRoute
   '/timeline': typeof TimelineRoute
+  '/api/guardian-chat': typeof ApiGuardianChatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/simulation': typeof SimulationRoute
   '/takedown': typeof TakedownRoute
   '/timeline': typeof TimelineRoute
+  '/api/guardian-chat': typeof ApiGuardianChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/simulation'
     | '/takedown'
     | '/timeline'
+    | '/api/guardian-chat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/simulation'
     | '/takedown'
     | '/timeline'
+    | '/api/guardian-chat'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/simulation'
     | '/takedown'
     | '/timeline'
+    | '/api/guardian-chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   SimulationRoute: typeof SimulationRoute
   TakedownRoute: typeof TakedownRoute
   TimelineRoute: typeof TimelineRoute
+  ApiGuardianChatRoute: typeof ApiGuardianChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/guardian-chat': {
+      id: '/api/guardian-chat'
+      path: '/api/guardian-chat'
+      fullPath: '/api/guardian-chat'
+      preLoaderRoute: typeof ApiGuardianChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   SimulationRoute: SimulationRoute,
   TakedownRoute: TakedownRoute,
   TimelineRoute: TimelineRoute,
+  ApiGuardianChatRoute: ApiGuardianChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
