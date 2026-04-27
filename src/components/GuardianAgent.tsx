@@ -1,7 +1,7 @@
 import { Sparkles, RefreshCw, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { askGuardian } from "@/server/guardian.functions";
+import { askGuardian, GUARDIAN_MODELS, DEFAULT_GUARDIAN_MODEL, type GuardianModel } from "@/server/guardian.functions";
 
 interface Props {
   message?: string;
